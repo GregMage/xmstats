@@ -31,3 +31,11 @@ define('_MA_XMSTATS_', '');
 
 
 // Shared
+
+// index.php
+
+
+define('_MA_XMSTATS_INDEX_ALL', 'Sur toute la période');
+define('_MA_XMSTATS_INDEX_ORDER', 'Commandes');
+define('_MA_XMSTATS_INDEX_YEAR', 'Sur l\'année en cours (scolaire)');
+define('_MA_XMSTATS_INDEX_XMSTOCK', 'Gestion de stock');
