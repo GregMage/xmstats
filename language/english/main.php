@@ -33,9 +33,15 @@ define('_MA_XMSTATS_', '');
 // Shared
 
 // index.php
-
-
 define('_MA_XMSTATS_INDEX_ALL', 'Sur toute la période');
 define('_MA_XMSTATS_INDEX_ORDER', 'Commandes');
 define('_MA_XMSTATS_INDEX_YEAR', 'Sur l\'année en cours (scolaire)');
 define('_MA_XMSTATS_INDEX_XMSTOCK', 'Gestion de stock');
+
+// export.php
+define('_MA_XMSTATS_EXPORT_TITLE', 'Système d\'exportation des données');
+define('_MA_XMSTATS_EXPORT_KARDEX', 'Kardex');
+define('_MA_XMSTATS_EXPORT_ARTICLE', 'Composant');
+define('_MA_XMSTATS_EXPORT_STOCK', 'Stock');
+define('_MA_XMSTATS_EXPORT_TRANSFER', 'Transferts');
+

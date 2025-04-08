@@ -32,6 +32,10 @@ $modversion['image']       = 'assets/images/xmstats_logo.png';
 
 // Menu
 $modversion['hasMain'] = 1;
+$modversion['sub'][]   = [
+    'name' => _MI_XMSTATS_SUB_EXPORT,
+    'url'  => 'export.php'
+];
 
 // Admin things
 $modversion['hasAdmin']    = 1;
@@ -40,7 +44,7 @@ $modversion['adminindex']  = 'admin/index.php';
 $modversion['adminmenu']   = 'admin/menu.php';
 
 // Install and update
-
+$modversion['onInstall'] = 'include/install.php';
 
 // Tables
 
@@ -50,6 +54,7 @@ $modversion['templates'][] = ['file' => 'xmstats_admin_permission.tpl', 'descrip
 
 // User Templates
 $modversion['templates'][] = ['file' => 'xmstats_index.tpl', 'description' => ''];
+$modversion['templates'][] = ['file' => 'xmstats_export.tpl', 'description' => ''];
 
 // Blocks
 

@@ -24,6 +24,10 @@ define('_MI_XMSTATS_MENU_HOME', 'Index');
 define('_MI_XMSTATS_MENU_PERMISSION', 'Permission');
 define('_MI_XMSTATS_MENU_ABOUT', 'About');
 
+// Menu front
+define('_MI_XMSTATS_SUB_EXPORT', 'Exportation');
+
+
 // Pref
 define('_MI_XMSTATS_PREF_HEAD_GENERAL', '<span style="font-size: large;  font-weight: bold;">--- General ---</span>');
 define('_MI_XMSTATS_PREF_GENERALITEMPERPAGE', 'Number of items per page in the general view');
