@@ -30,17 +30,17 @@ $xoopsTpl->assign('index_module', $helper->getModule()->getVar('name'));
 $xoopsTpl->assign('xmstock', xoops_isActiveModule('xmstock'));
 $xoopsTpl->assign('xmarticle', xoops_isActiveModule('xmarticle'));
 
-$op = Request::getString('op', '', 'GET');
+//options
+$separator 	= ';';
+
+$op = Request::getString('op', '', 'REQUEST');
 
 switch ($op) {
     case 'kardex':
         if (xoops_isActiveModule('xmarticle')){
-            $xoopsTpl->assign('xmstock', true);
-            $helper_xmarticle = Helper::getHelper('xmarticle');
             $name_csv 	= 'Export_kardex_' . time() . '.csv';
             $path_csv 	= XOOPS_UPLOAD_PATH . '/xmstats/exports/kardex/' . $name_csv;
             $url_csv 	= XOOPS_UPLOAD_URL . '/xmstats/exports/kardex/' . $name_csv;
-            $separator 	= ';';
 
             //supression des anciens fichiers
             $csv_list = XoopsLists::getFileListByExtension(XOOPS_UPLOAD_PATH . '/xmstats/exports/kardex/', array('csv'));
@@ -79,9 +79,69 @@ switch ($op) {
             fclose($csv);
             header("Location: $url_csv");
         }
-
         break;
+
     case 'article':
+        if (xoops_isActiveModule('xmarticle')){
+            $helper_xmarticle = Helper::getHelper('xmarticle');
+            $categorieHandler  = $helper_xmarticle->getHandler('xmarticle_category');
+            $articleHandler  = $helper_xmarticle->getHandler('xmarticle_article');
+
+            include_once XOOPS_ROOT_PATH . '/class/xoopsformloader.php';
+            $form = new XoopsThemeForm(_MA_XMSTATS_EXPORT_FILTER_ARTICLE_TITLE, 'form', $_SERVER['REQUEST_URI'], 'post', true);
+
+            // categorie
+            $categorie = new XoopsFormSelect(_MA_XMSTATS_EXPORT_FILTER_ARTICLE_CATEGORIE, 'filter_categorie', 0, 4, true);
+            $criteria = new CriteriaCompo();
+            $criteria->add(new Criteria('category_status', 1));
+            $criteria->setSort('category_weight ASC, category_name');
+            $criteria->setOrder('ASC');
+            $categorie_arr = $categorieHandler->getall($criteria);
+            $categorie->addOption(0, _MA_XMSTATS_EXPORT_FILTER_ALLF);
+            foreach (array_keys($categorie_arr) as $i) {
+                $categorie->addOption($categorie_arr[$i]->getVar('category_id'), $categorie_arr[$i]->getVar('category_name'));
+            }
+            $categorie->setDescription(_MA_XMSTATS_EXPORT_FILTER_ARTICLE_CATEGORIE_DESC);
+            $form->addElement($categorie, true);
+
+            // user
+            $user = new XoopsFormSelect(_MA_XMSTATS_EXPORT_FILTER_ARTICLE_USER, 'filter_user', 0, 4, true);
+            $user->setDescription(_MA_XMSTATS_EXPORT_FILTER_ARTICLE_USER_DESC);
+            $sql = "SELECT DISTINCT u.uid, u.uname
+                    FROM " . $xoopsDB->prefix('xmarticle_article') . " a
+                    JOIN " . $xoopsDB->prefix('users') . " u ON a.article_userid = u.uid
+                    ORDER BY u.uname ASC";
+            $result = $xoopsDB->query($sql);
+            $user->addOption(0, _MA_XMSTATS_EXPORT_FILTER_ALLM);
+            if ($result) {
+                while ($row = $xoopsDB->fetchArray($result)) {
+                    $user->addOption($row['uid'], $row['uname']);
+                }
+            }
+            $form->addElement($user, true);
+
+            // name
+            $name = new XoopsFormText(_MA_XMSTATS_EXPORT_FILTER_ARTICLE_NAME, 'filter_name_desc', 50, 255, '');
+            $name->setDescription(_MA_XMSTATS_EXPORT_FILTER_ARTICLE_NAME_DESC);
+            $form->addElement($name, false);
+
+            // status
+            $status = new XoopsFormRadio(_MA_XMSTATS_EXPORT_FILTER_ARTICLE_STATUS, 'filter_status', 1);
+            $status->addOption(0, _MA_XMPROD_EXPORT_STATUS_NA);
+            $status->addOption(1, _MA_XMPROD_EXPORT_STATUS_A);
+            $status->addOption(2, _MA_XMSTATS_EXPORT_FILTER_ALLM);
+            $form->addElement($status, true);
+
+            // export
+            $form->addElement(new XoopsFormButton('', 'submit', _SUBMIT, 'submit'));
+
+            $form->addElement(new XoopsFormHidden('op', 'export_article'));
+
+            $xoopsTpl->assign('form', $form->render());
+        }
+        break;
+
+    case 'export_article':
         echo '<h3>article</h3>';
 
         break;

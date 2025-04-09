@@ -44,4 +44,16 @@ define('_MA_XMSTATS_EXPORT_KARDEX', 'Kardex');
 define('_MA_XMSTATS_EXPORT_ARTICLE', 'Composant');
 define('_MA_XMSTATS_EXPORT_STOCK', 'Stock');
 define('_MA_XMSTATS_EXPORT_TRANSFER', 'Transferts');
+define('_MA_XMSTATS_EXPORT_FILTER_ALLF', 'Toutes');
+define('_MA_XMSTATS_EXPORT_FILTER_ALLM', 'Tous');
+define('_MA_XMSTATS_EXPORT_FILTER_ARTICLE_USER', 'Créateur du composant');
+define('_MA_XMSTATS_EXPORT_FILTER_ARTICLE_USER_DESC', 'Il est possible de choisir plusieurs créateurs de composants en utilisant la touche CTRL.');
+define('_MA_XMSTATS_EXPORT_FILTER_ARTICLE_TITLE', 'Filtre pour l\'export des composants');
+define('_MA_XMSTATS_EXPORT_FILTER_ARTICLE_CATEGORIE', 'Catégorie de composant');
+define('_MA_XMSTATS_EXPORT_FILTER_ARTICLE_CATEGORIE_DESC', 'Il est possible de choisir plusieurs catégories de composants en utilisant la touche CTRL.');
+define('_MA_XMSTATS_EXPORT_FILTER_ARTICLE_STATUS', 'Statut du composant');
+define('_MA_XMSTATS_EXPORT_FILTER_ARTICLE_NAME', 'Nom du composant');
+define('_MA_XMSTATS_EXPORT_FILTER_ARTICLE_NAME_DESC', 'Le nom du composant peut être partiel. Laissez vide pour tout afficher.');
+define('_MA_XMPROD_EXPORT_STATUS_A', 'Activé');
+define('_MA_XMPROD_EXPORT_STATUS_NA', 'Désactivé');
 

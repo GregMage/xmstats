@@ -7,7 +7,7 @@
 	</nav>
 	<h2><{$smarty.const._MA_XMSTATS_EXPORT_TITLE}></h2>
 	<{if $xmstock == true && $xmarticle == true}>
-	<div class="text-center pt-2 mb-5">
+	<div class="text-center pt-2 mb-2">
 		<div class="btn-group text-center" role="group">
 			<{if $xmarticle == true}>
 			<a title="<{$smarty.const._MA_XMSTATS_EXPORT_KARDEX}>" class="btn btn-light btn-lg" href="<{$xoops_url}>/modules/xmstats/export.php?op=kardex">
@@ -27,5 +27,8 @@
 			<{/if}>
 		</div>
 	</div>
+	<{/if}>
+	<{if $form|default:'' != ''}>
+		<{$form}>
 	<{/if}>
 </div><!-- .xmstats -->
