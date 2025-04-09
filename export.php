@@ -34,11 +34,10 @@ $op = Request::getString('op', '', 'GET');
 
 switch ($op) {
     case 'kardex':
-        echo '<h3>kardex</h3>';
         if (xoops_isActiveModule('xmarticle')){
             $xoopsTpl->assign('xmstock', true);
             $helper_xmarticle = Helper::getHelper('xmarticle');
-            $name_csv 	= 'Export_' . time() . '.csv';
+            $name_csv 	= 'Export_kardex_' . time() . '.csv';
             $path_csv 	= XOOPS_UPLOAD_PATH . '/xmstats/exports/kardex/' . $name_csv;
             $url_csv 	= XOOPS_UPLOAD_URL . '/xmstats/exports/kardex/' . $name_csv;
             $separator 	= ';';
