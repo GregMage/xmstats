@@ -43,17 +43,16 @@ switch ($op) {
             $url_csv 	= XOOPS_UPLOAD_URL . '/xmstats/exports/kardex/' . $name_csv;
 
             //supression des anciens fichiers
-            $csv_list = XoopsLists::getFileListByExtension(XOOPS_UPLOAD_PATH . '/xmstats/exports/kardex/', array('csv'));
-            foreach ($csv_list as $file) {
-                unlink(XOOPS_UPLOAD_PATH . '/xmstats/exports/kardex/' . $file);
-            }
+            XmstatsUtility::delOldFiles(XOOPS_UPLOAD_PATH . '/xmstats/exports/kardex/', 'csv');
 
-            // Création du fichier d'export
+            // Création de la requête
             $sql = "SELECT o.*, l.* , k.* , m.* FROM " . $xoopsDB->prefix('xmarticle_article') . " AS o LEFT JOIN " . $xoopsDB->prefix('xmarticle_category') . " AS l ON o.article_cid = l.category_id";
             $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmstock_stock') . " AS k ON o.article_id = k.stock_articleid";
             $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmstock_area') . " AS m ON k.stock_areaid = m.area_id";
             $sql .= " GROUP BY article_id ORDER BY article_id ASC";
             $article_arr = $xoopsDB->query($sql);
+
+            // Création du fichier d'export
             $csv = fopen($path_csv, 'w+');
             //add BOM to fix UTF-8 in Excel
             fputs($csv, $bom = ( chr(0xEF) . chr(0xBB) . chr(0xBF) ));
@@ -121,7 +120,7 @@ switch ($op) {
             $form->addElement($user, true);
 
             // name
-            $name = new XoopsFormText(_MA_XMSTATS_EXPORT_FILTER_ARTICLE_NAME, 'filter_name_desc', 50, 255, '');
+            $name = new XoopsFormText(_MA_XMSTATS_EXPORT_FILTER_ARTICLE_NAME, 'filter_name', 50, 255, '');
             $name->setDescription(_MA_XMSTATS_EXPORT_FILTER_ARTICLE_NAME_DESC);
             $form->addElement($name, false);
 
@@ -142,8 +141,186 @@ switch ($op) {
         break;
 
     case 'export_article':
-        echo '<h3>article</h3>';
+        if (xoops_isActiveModule('xmarticle')){
+            $helper_xmarticle = Helper::getHelper('xmarticle');
+            $helper_xmarticle->loadLanguage('main');
+            $fieldHandler  = $helper_xmarticle->getHandler('xmarticle_field');
+            $categoryHandler  = $helper_xmarticle->getHandler('xmarticle_category');
 
+            // récupération des valeurs du formulaire
+            $categories = Request::getArray('filter_categorie', 0, 'POST');
+            $user = Request::getArray('filter_user', 0, 'POST');
+            $name = Request::getString('filter_name', '', 'POST');
+            $status = Request::getInt('filter_status', 0, 'POST');
+
+            // récupération des ids des champs supémentaires utilisés
+            $criteria = new CriteriaCompo();
+            $criteria->add(new Criteria('category_status', 1));
+            if (!in_array(0, $categories)){
+                $criteria->add(new Criteria('category_id', '(' . implode(',', $categories) . ')', 'IN'));
+            }
+            $category_arr = $categoryHandler->getall($criteria);
+            $categoryFields = [];
+            foreach (array_keys($category_arr) as $i) {
+                $categoryFields = array_merge($categoryFields, !empty($category_arr[$i]->getVar('category_fields')) ? $category_arr[$i]->getVar('category_fields') : []);
+            }
+            $categoryFields = array_values(array_unique($categoryFields));
+            // options d'export
+            $name_csv 	= 'Export_article_' . time() . '.csv';
+            $path_csv 	= XOOPS_UPLOAD_PATH . '/xmstats/exports/article/' . $name_csv;
+            $url_csv 	= XOOPS_UPLOAD_URL . '/xmstats/exports/article/' . $name_csv;
+            //supression des anciens fichiers
+            XmstatsUtility::delOldFiles(XOOPS_UPLOAD_PATH . '/xmstats/exports/article/', 'csv');
+            // En-tête fixe du CSV
+            $header = [_MA_XMARTICLE_ARTICLE_REFERENCE, _MA_XMARTICLE_INDEX_ARTICLE, _MA_XMARTICLE_ARTICLE_DESC, _MA_XMARTICLE_ARTICLE_CATEGORY,
+                       _MA_XMARTICLE_AUTHOR, _MA_XMARTICLE_DATE, _MA_XMARTICLE_READING, _MA_XMARTICLE_STATUS];
+            // En-tête champs personalisés du CSV
+            if (!empty($categoryFields)) {
+                $criteria = new CriteriaCompo();
+                $criteria->add(new Criteria('field_status', 1));
+                $criteria->setSort('field_weight ASC, field_name');
+                $criteria->add(new Criteria('field_id', '(' . implode(',', $categoryFields) . ')', 'IN'));
+                $criteria->setOrder('ASC');
+                $field_arr = $fieldHandler->getall($criteria);
+                $fields_label = [];
+                foreach (array_keys($field_arr) as $i) {
+                    $header[] = $field_arr[$i]->getVar('field_name');
+                    $fields[$i] = $field_arr[$i]->getVar('field_name');
+                    if ($field_arr[$i]->getVar('field_type') == 'label'){
+                        $fields_label[$i] = $field_arr[$i]->getVar('field_default');
+                    }
+                }
+            } else {
+                $fields = [];
+            }
+            // Récupération des articles avec leurs catégories et champs
+            $sql  = "SELECT a.*, c.category_name, c.category_fields, u.uname, f.*, fd.*";
+            $sql .= " FROM " . $xoopsDB->prefix('xmarticle_article') . " AS a";
+            $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmarticle_category') . " AS c ON a.article_cid = c.category_id";
+            $sql .= " LEFT JOIN " . $xoopsDB->prefix('users') . " AS u ON a.article_userid = u.uid";
+            $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmarticle_fielddata') . " AS fd ON a.article_id = fd.fielddata_aid";
+            $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmarticle_field') . " AS f ON fd.fielddata_fid = f.field_id";
+            if (!in_array(0, $categories)){
+                $sql_where[] = "a.article_cid IN (" . implode(',', $categories) . ")";
+            }
+            if ($status === 0 || $status === 1) {
+                $sql_where[] = "a.article_status = $status";
+            }
+            if (!empty($name)) {
+                $sql_where[] = "a.article_name LIKE '%" . $xoopsDB->escape($name) . "%'";
+            }
+            if (!in_array(0, $user)){
+                $sql_where[] = "a.article_userid IN (" . implode(',', $user) . ")";
+            }
+            if (!empty($sql_where)) {
+                $sql .= " WHERE " . implode(' AND ', $sql_where);
+            }
+            $sql .= " ORDER BY a.article_id ASC";
+            $result = $xoopsDB->query($sql);
+            // Préparation des données pour chaque article
+            $articles = [];
+            while ($row = $xoopsDB->fetchArray($result)) {
+                $articleId = $row['article_id'];
+                if (!isset($articles[$articleId])) {
+                    // Initialisation de l'article
+                    $articles[$articleId] = [
+                        'article_reference' => $row['article_reference'],
+                        'article_name' => $row['article_name'],
+                        'article_description' => $row['article_description'],
+                        'category_name' => $row['category_name'],
+                        'article_uname' => $row['uname'],
+                        'article_date' => date('d-m-Y', $row['article_date']),
+                        'article_counter' => $row['article_counter'],
+                        'article_status' => $row['article_status'],
+                        'fields' => array_fill_keys(array_keys($fields), '') // Champs initialisés à vide
+                    ];
+                }
+                // Remplissage des champs si une valeur existe
+                if (!empty($row['fielddata_fid']) && isset($fields[$row['fielddata_fid']])) {
+                    switch ($row['field_type']) {
+                        case 'vs_text':
+                        case 's_text':
+                        case 'm_text':
+                        case 'l_text':
+                            $articles[$articleId]['fields'][$row['fielddata_fid']] = $row['fielddata_value1'];
+                            break;
+
+                        case 'radio_yn':
+                            if ($row['fielddata_value1'] == 0) {
+                                $articles[$articleId]['fields'][$row['fielddata_fid']] = _NO;
+                            } else {
+                                $articles[$articleId]['fields'][$row['fielddata_fid']] = _YES;
+                            }
+                            break;
+
+                        case 'select':
+                        case 'radio':
+                            $field_options = unserialize($row['field_options']);
+                            $articles[$articleId]['fields'][$row['fielddata_fid']] = $field_options[$row['fielddata_value1']];
+                            break;
+
+                        case 'text':
+                            $articles[$articleId]['fields'][$row['fielddata_fid']] = $row['fielddata_value2'];
+                            break;
+
+                        case 'select_multi':
+                        case 'checkbox':
+                            $field_options = unserialize($row['field_options']);
+                            if (empty($articles[$articleId]['fields'][$row['fielddata_fid']])){
+                                $articles[$articleId]['fields'][$row['fielddata_fid']] = $field_options[$row['fielddata_value3']];
+                            } else {
+                                $articles[$articleId]['fields'][$row['fielddata_fid']] = $articles[$articleId]['fields'][$row['fielddata_fid']] .
+                                $helper_xmarticle->getConfig('general_separator', '-') . $field_options[$row['fielddata_value3']];
+                            }
+                            break;
+
+                        case 'number':
+                            $articles[$articleId]['fields'][$row['fielddata_fid']] = $row['fielddata_value4'];
+                            break;
+                        // provisoir
+                        default:
+                            echo 'default<br>';
+                            $articles[$articleId]['fields'][$row['fielddata_fid']] = $row['fielddata_value1'];
+                            break;
+                    }
+                }
+                // remplissage des champs label
+                if (!empty($fields_label)) {
+                    $category_fields = unserialize($row['category_fields']);
+                    foreach (array_keys($fields_label) as $i) {
+                        if (in_array($i, $category_fields)) {
+                            $articles[$articleId]['fields'][$i] = $fields_label[$i];
+                        }
+                    }
+                }
+            }
+            // Création du fichier d'export
+            $csv = fopen($path_csv, 'w+');
+            //add BOM to fix UTF-8 in Excel
+            fputs($csv, $bom = ( chr(0xEF) . chr(0xBB) . chr(0xBF) ));
+            // En-tête du CSV
+            fputcsv($csv, $header, $separator);
+            // Écriture des données dans le CSV
+            foreach ($articles as $article) {
+                $line = [
+                    $article['article_reference'],
+                    $article['article_name'],
+                    $article['article_description'],
+                    $article['category_name'],
+                    $article['article_uname'],
+                    $article['article_date'],
+                    $article['article_counter'],
+                    $article['article_status'] == 1 ? _MA_XMARTICLE_STATUS_A : _MA_XMARTICLE_STATUS_NA
+                ];
+                // Ajout des valeurs des champs
+                foreach ($fields as $fieldId => $fieldName) {
+                    $line[] = $article['fields'][$fieldId];
+                }
+                fputcsv($csv, $line, $separator);
+            }
+            fclose($csv);
+            header("Location: $url_csv");
+        }
         break;
     case 'stock':
         echo '<h3>stock</h3>';
