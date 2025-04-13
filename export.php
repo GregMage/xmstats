@@ -49,6 +49,7 @@ switch ($op) {
             $sql = "SELECT o.*, l.* , k.* , m.* FROM " . $xoopsDB->prefix('xmarticle_article') . " AS o LEFT JOIN " . $xoopsDB->prefix('xmarticle_category') . " AS l ON o.article_cid = l.category_id";
             $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmstock_stock') . " AS k ON o.article_id = k.stock_articleid";
             $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmstock_area') . " AS m ON k.stock_areaid = m.area_id";
+            $sql .= " WHERE o.article_status = 1";
             $sql .= " GROUP BY article_id ORDER BY article_id ASC";
             $article_arr = $xoopsDB->query($sql);
 
