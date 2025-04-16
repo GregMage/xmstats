@@ -41,8 +41,8 @@ define('_MA_XMSTATS_INDEX_XMSTOCK', 'Gestion de stock');
 // export.php
 define('_MA_XMSTATS_EXPORT_TITLE', 'Système d\'exportation des données');
 define('_MA_XMSTATS_EXPORT_KARDEX', 'Kardex');
-define('_MA_XMSTATS_EXPORT_ARTICLE', 'Composant');
-define('_MA_XMSTATS_EXPORT_STOCK', 'Stock');
+define('_MA_XMSTATS_EXPORT_ARTICLE', 'Composants');
+define('_MA_XMSTATS_EXPORT_STOCK', 'Stocks');
 define('_MA_XMSTATS_EXPORT_TRANSFER', 'Transferts');
 define('_MA_XMSTATS_EXPORT_FILTER_ALLF', 'Toutes');
 define('_MA_XMSTATS_EXPORT_FILTER_ALLM', 'Tous');
