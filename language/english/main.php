@@ -54,6 +54,13 @@ define('_MA_XMSTATS_EXPORT_FILTER_ARTICLE_CATEGORIE_DESC', 'Il est possible de c
 define('_MA_XMSTATS_EXPORT_FILTER_ARTICLE_STATUS', 'Statut du composant');
 define('_MA_XMSTATS_EXPORT_FILTER_ARTICLE_NAME', 'Nom du composant');
 define('_MA_XMSTATS_EXPORT_FILTER_ARTICLE_NAME_DESC', 'Le nom du composant peut être partiel. Laissez vide pour tout afficher.');
-define('_MA_XMPROD_EXPORT_STATUS_A', 'Activé');
-define('_MA_XMPROD_EXPORT_STATUS_NA', 'Désactivé');
+define('_MA_XMSTATS_EXPORT_STATUS_A', 'Activé');
+define('_MA_XMSTATS_EXPORT_STATUS_NA', 'Désactivé');
 
+// Permission
+define('_MA_XMSTATS_PERMISSION', 'Autorisations');
+define('_MA_XMSTATS_PERMISSION_DSC', 'Choisissez les groupes qui peuvent effectuer les actions suivantes');
+define('_MA_XMSTATS_PERMISSION_OTHER_2', 'Exportation Kardex');
+define('_MA_XMSTATS_PERMISSION_OTHER_4', 'Exportation composants');
+define('_MA_XMSTATS_PERMISSION_OTHER_8', 'Exportation stocks');
+define('_MA_XMSTATS_PERMISSION_OTHER_16', 'Exportation transferts');
