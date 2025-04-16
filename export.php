@@ -30,6 +30,22 @@ $xoopsTpl->assign('index_module', $helper->getModule()->getVar('name'));
 $xoopsTpl->assign('xmstock', xoops_isActiveModule('xmstock'));
 $xoopsTpl->assign('xmarticle', xoops_isActiveModule('xmarticle'));
 
+//permissions
+$moduleHandler = $helper->getModule();
+$groups = is_object($xoopsUser) ? $xoopsUser->getGroups() : XOOPS_GROUP_ANONYMOUS;
+$gpermHandler = xoops_getHandler('groupperm');
+$perm_kardex = $gpermHandler->checkRight('xmstats_other', 2, $groups, $moduleHandler->getVar('mid'), false) ? true : false;
+$perm_article = $gpermHandler->checkRight('xmstats_other', 4, $groups, $moduleHandler->getVar('mid'), false) ? true : false;
+$perm_stock = $gpermHandler->checkRight('xmstats_other', 8, $groups, $moduleHandler->getVar('mid'), false) ? true : false;
+$perm_transfert = $gpermHandler->checkRight('xmstats_other', 16, $groups, $moduleHandler->getVar('mid'), false) ? true : false;
+$xoopsTpl->assign('perm_kardex', $perm_kardex);
+$xoopsTpl->assign('perm_article', $perm_article);
+$xoopsTpl->assign('perm_stock', $perm_stock);
+$xoopsTpl->assign('perm_transfert', $perm_transfert);
+if ($perm_kardex == false && $perm_article == false && $perm_stock == false && $perm_transfert == false){
+    redirect_header('index.php', 5, _NOPERM);
+}
+
 //options
 $separator 	= ';';
 
@@ -37,6 +53,9 @@ $op = Request::getString('op', '', 'REQUEST');
 
 switch ($op) {
     case 'kardex':
+        if ($perm_kardex == false){
+            redirect_header('export.php', 5, _NOPERM);
+        }
         if (xoops_isActiveModule('xmarticle')){
             $name_csv 	= 'Export_kardex_' . time() . '.csv';
             $path_csv 	= XOOPS_UPLOAD_PATH . '/xmstats/exports/kardex/' . $name_csv;
@@ -82,6 +101,9 @@ switch ($op) {
         break;
 
     case 'article':
+        if ($perm_article == false){
+            redirect_header('export.php', 5, _NOPERM);
+        }
         if (xoops_isActiveModule('xmarticle')){
             $helper_xmarticle = Helper::getHelper('xmarticle');
             $categorieHandler  = $helper_xmarticle->getHandler('xmarticle_category');
@@ -142,6 +164,9 @@ switch ($op) {
         break;
 
     case 'export_article':
+        if ($perm_article == false){
+            redirect_header('export.php', 5, _NOPERM);
+        }
         if (xoops_isActiveModule('xmarticle')){
             $helper_xmarticle = Helper::getHelper('xmarticle');
             $helper_xmarticle->loadLanguage('main');
@@ -324,10 +349,16 @@ switch ($op) {
         }
         break;
     case 'stock':
+        if ($perm_stock == false){
+            redirect_header('export.php', 5, _NOPERM);
+        }
         echo '<h3>stock</h3>';
 
         break;
     case 'transfer':
+        if ($perm_transfert == false){
+            redirect_header('export.php', 5, _NOPERM);
+        }
         echo '<h3>transfer</h3>';
 
         break;

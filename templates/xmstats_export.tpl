@@ -10,20 +10,28 @@
 	<div class="text-center pt-2 mb-2">
 		<div class="btn-group text-center" role="group">
 			<{if $xmarticle == true}>
-			<a title="<{$smarty.const._MA_XMSTATS_EXPORT_KARDEX}>" class="btn btn-light btn-lg" href="<{$xoops_url}>/modules/xmstats/export.php?op=kardex">
-				<span class="fa fa-folder fa-2x"></span><p class="mt-2"><{$smarty.const._MA_XMSTATS_EXPORT_KARDEX}></p>
-			</a>
-			<a title="<{$smarty.const._MA_XMSTATS_EXPORT_ARTICLE}>" class="btn btn-light btn-lg" href="<{$xoops_url}>/modules/xmstats/export.php?op=article">
-				<span class="fa fa-server fa-2x"></span><p class="mt-2"><{$smarty.const._MA_XMSTATS_EXPORT_ARTICLE}></p>
-			</a>
+				<{if $perm_kardex == true}>
+				<a title="<{$smarty.const._MA_XMSTATS_EXPORT_KARDEX}>" class="btn btn-light btn-lg" href="<{$xoops_url}>/modules/xmstats/export.php?op=kardex">
+					<span class="fa fa-folder fa-2x"></span><p class="mt-2"><{$smarty.const._MA_XMSTATS_EXPORT_KARDEX}></p>
+				</a>
+				<{/if}>
+				<{if $perm_article == true}>
+				<a title="<{$smarty.const._MA_XMSTATS_EXPORT_ARTICLE}>" class="btn btn-light btn-lg" href="<{$xoops_url}>/modules/xmstats/export.php?op=article">
+					<span class="fa fa-server fa-2x"></span><p class="mt-2"><{$smarty.const._MA_XMSTATS_EXPORT_ARTICLE}></p>
+				</a>
+				<{/if}>
 			<{/if}>
 			<{if $xmstock == true}>
-			<a title="<{$smarty.const._MA_XMSTATS_EXPORT_STOCK}>" class="btn btn-light btn-lg" href="<{$xoops_url}>/modules/xmstats/export.php?op=stock">
-				<span class="fa fa-cubes fa-2x"></span><p class="mt-2"><{$smarty.const._MA_XMSTATS_EXPORT_STOCK}></p>
-			</a>
-			<a title="<{$smarty.const._MA_XMSTATS_EXPORT_TRANSFER}>" class="btn btn-light btn-lg" href="<{$xoops_url}>/modules/xmstats/export.php?op=transfer">
-				<span class="fa fa-random fa-2x"></span><p class="mt-2"><{$smarty.const._MA_XMSTATS_EXPORT_TRANSFER}></p>
-			</a>
+				<{if $perm_stock == true}>
+				<a title="<{$smarty.const._MA_XMSTATS_EXPORT_STOCK}>" class="btn btn-light btn-lg" href="<{$xoops_url}>/modules/xmstats/export.php?op=stock">
+					<span class="fa fa-cubes fa-2x"></span><p class="mt-2"><{$smarty.const._MA_XMSTATS_EXPORT_STOCK}></p>
+				</a>
+				<{/if}>
+				<{if $perm_transfert == true}>
+				<a title="<{$smarty.const._MA_XMSTATS_EXPORT_TRANSFER}>" class="btn btn-light btn-lg" href="<{$xoops_url}>/modules/xmstats/export.php?op=transfer">
+					<span class="fa fa-random fa-2x"></span><p class="mt-2"><{$smarty.const._MA_XMSTATS_EXPORT_TRANSFER}></p>
+				</a>
+				<{/if}>
 			<{/if}>
 		</div>
 	</div>

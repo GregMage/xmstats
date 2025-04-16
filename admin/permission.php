@@ -18,7 +18,6 @@
  */
 
 use Xmf\Module\Admin;
-use Xmf\Request;
 
 require __DIR__ . '/admin_header.php';
 include_once XOOPS_ROOT_PATH.'/class/xoopsform/grouppermform.php';
