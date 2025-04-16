@@ -127,8 +127,8 @@ switch ($op) {
 
             // status
             $status = new XoopsFormRadio(_MA_XMSTATS_EXPORT_FILTER_ARTICLE_STATUS, 'filter_status', 1);
-            $status->addOption(0, _MA_XMPROD_EXPORT_STATUS_NA);
-            $status->addOption(1, _MA_XMPROD_EXPORT_STATUS_A);
+            $status->addOption(0, _MA_XMSTATS_EXPORT_STATUS_NA);
+            $status->addOption(1, _MA_XMSTATS_EXPORT_STATUS_A);
             $status->addOption(2, _MA_XMSTATS_EXPORT_FILTER_ALLM);
             $form->addElement($status, true);
 
