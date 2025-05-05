@@ -39,13 +39,9 @@ define('_MA_XMSTATS_INDEX_YEAR', 'Sur l\'année en cours (scolaire)');
 define('_MA_XMSTATS_INDEX_XMSTOCK', 'Gestion de stock');
 
 // export.php
-define('_MA_XMSTATS_EXPORT_TITLE', 'Système d\'exportation des données');
-define('_MA_XMSTATS_EXPORT_KARDEX', 'Kardex');
 define('_MA_XMSTATS_EXPORT_ARTICLE', 'Composants');
-define('_MA_XMSTATS_EXPORT_STOCK', 'Stocks');
-define('_MA_XMSTATS_EXPORT_TRANSFER', 'Transferts');
-define('_MA_XMSTATS_EXPORT_FILTER_ALLF', 'Toutes');
-define('_MA_XMSTATS_EXPORT_FILTER_ALLM', 'Tous');
+define('_MA_XMSTATS_EXPORT_FILTER_AREA', 'Lieu de stockage');
+define('_MA_XMSTATS_EXPORT_FILTER_AREA_DESC', 'Il est possible de choisir plusieurs lieux de stockages en utilisant la touche CTRL.');
 define('_MA_XMSTATS_EXPORT_FILTER_ARTICLE_USER', 'Créateur du composant');
 define('_MA_XMSTATS_EXPORT_FILTER_ARTICLE_USER_DESC', 'Il est possible de choisir plusieurs créateurs de composants en utilisant la touche CTRL.');
 define('_MA_XMSTATS_EXPORT_FILTER_ARTICLE_TITLE', 'Filtre pour l\'export des composants');
@@ -54,8 +50,15 @@ define('_MA_XMSTATS_EXPORT_FILTER_ARTICLE_CATEGORIE_DESC', 'Il est possible de c
 define('_MA_XMSTATS_EXPORT_FILTER_ARTICLE_STATUS', 'Statut du composant');
 define('_MA_XMSTATS_EXPORT_FILTER_ARTICLE_NAME', 'Nom du composant');
 define('_MA_XMSTATS_EXPORT_FILTER_ARTICLE_NAME_DESC', 'Le nom du composant peut être partiel. Laissez vide pour tout afficher.');
+define('_MA_XMSTATS_EXPORT_FILTER_ALLF', 'Toutes');
+define('_MA_XMSTATS_EXPORT_FILTER_ALLM', 'Tous');
+define('_MA_XMSTATS_EXPORT_FILTER_STOCK_TITLE', 'Filtre pour l\'export des stocks');
+define('_MA_XMSTATS_EXPORT_KARDEX', 'Kardex');
 define('_MA_XMSTATS_EXPORT_STATUS_A', 'Activé');
 define('_MA_XMSTATS_EXPORT_STATUS_NA', 'Désactivé');
+define('_MA_XMSTATS_EXPORT_STOCK', 'Stocks');
+define('_MA_XMSTATS_EXPORT_TITLE', 'Système d\'exportation des données');
+define('_MA_XMSTATS_EXPORT_TRANSFER', 'Transferts');
 
 // Permission
 define('_MA_XMSTATS_PERMISSION', 'Autorisations');

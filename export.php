@@ -107,7 +107,7 @@ switch ($op) {
         if (xoops_isActiveModule('xmarticle')){
             $helper_xmarticle = Helper::getHelper('xmarticle');
             $categorieHandler  = $helper_xmarticle->getHandler('xmarticle_category');
-            $articleHandler  = $helper_xmarticle->getHandler('xmarticle_article');
+            //$articleHandler  = $helper_xmarticle->getHandler('xmarticle_article');
 
             include_once XOOPS_ROOT_PATH . '/class/xoopsformloader.php';
             $form = new XoopsThemeForm(_MA_XMSTATS_EXPORT_FILTER_ARTICLE_TITLE, 'form', $_SERVER['REQUEST_URI'], 'post', true);
@@ -352,7 +352,57 @@ switch ($op) {
         if ($perm_stock == false){
             redirect_header('export.php', 5, _NOPERM);
         }
-        echo '<h3>stock</h3>';
+        if (xoops_isActiveModule('xmarticle') && xoops_isActiveModule('xmstock')){
+            $helper_xmarticle = Helper::getHelper('xmarticle');
+            $categorieHandler  = $helper_xmarticle->getHandler('xmarticle_category');
+
+            $helper_xmstock = Helper::getHelper('xmstock');
+            $areaHandler  = $helper_xmstock->getHandler('xmstock_area');
+
+            include_once XOOPS_ROOT_PATH . '/class/xoopsformloader.php';
+            $form = new XoopsThemeForm(_MA_XMSTATS_EXPORT_FILTER_STOCK_TITLE, 'form', $_SERVER['REQUEST_URI'], 'post', true);
+
+            // area
+            $area = new XoopsFormSelect(_MA_XMSTATS_EXPORT_FILTER_AREA, 'filter_area', 0, 4, true);
+            $criteria = new CriteriaCompo();
+            $criteria->add(new Criteria('area_status', 1));
+            $criteria->setSort('area_weight ASC, area_name');
+            $criteria->setOrder('ASC');
+            $area_arr = $areaHandler->getall($criteria);
+            $area->addOption(0, _MA_XMSTATS_EXPORT_FILTER_ALLM);
+            foreach (array_keys($area_arr) as $i) {
+                $area->addOption($area_arr[$i]->getVar('area_id'), $area_arr[$i]->getVar('area_name'));
+            }
+            $area->setDescription(_MA_XMSTATS_EXPORT_FILTER_AREA_DESC);
+            $form->addElement($area, true);
+
+            // categorie
+            $categorie = new XoopsFormSelect(_MA_XMSTATS_EXPORT_FILTER_ARTICLE_CATEGORIE, 'filter_categorie', 0, 4, true);
+            $criteria = new CriteriaCompo();
+            $criteria->add(new Criteria('category_status', 1));
+            $criteria->setSort('category_weight ASC, category_name');
+            $criteria->setOrder('ASC');
+            $categorie_arr = $categorieHandler->getall($criteria);
+            $categorie->addOption(0, _MA_XMSTATS_EXPORT_FILTER_ALLF);
+            foreach (array_keys($categorie_arr) as $i) {
+                $categorie->addOption($categorie_arr[$i]->getVar('category_id'), $categorie_arr[$i]->getVar('category_name'));
+            }
+            $categorie->setDescription(_MA_XMSTATS_EXPORT_FILTER_ARTICLE_CATEGORIE_DESC);
+            $form->addElement($categorie, true);
+
+            // name
+            $name = new XoopsFormText(_MA_XMSTATS_EXPORT_FILTER_ARTICLE_NAME, 'filter_name', 50, 255, '');
+            $name->setDescription(_MA_XMSTATS_EXPORT_FILTER_ARTICLE_NAME_DESC);
+            $form->addElement($name, false);
+
+            // export
+            $form->addElement(new XoopsFormButton('', 'submit', _SUBMIT, 'submit'));
+
+            $form->addElement(new XoopsFormHidden('op', 'export_stock'));
+
+            $xoopsTpl->assign('form', $form->render());
+        }
+
 
         break;
     case 'transfer':
