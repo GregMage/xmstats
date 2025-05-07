@@ -61,6 +61,10 @@ define('_MA_XMSTATS_EXPORT_STOCK_CANORDER', 'Commande autorisée');
 define('_MA_XMSTATS_EXPORT_STOCK_LOAN', 'Emprunt');
 define('_MA_XMSTATS_EXPORT_TITLE', 'Système d\'exportation des données');
 define('_MA_XMSTATS_EXPORT_TRANSFER', 'Transferts');
+define('_MA_XMSTATS_EXPORT_FILTER_TRANSFER_TITLE', 'Filtre pour l\'export des transferts');
+define('_MA_XMSTATS_EXPORT_FILTER_TRANSFER_DATE_RANGE', 'Inclure une plage de dates');
+define('_MA_XMSTATS_EXPORT_FILTER_TRANSFER_DATE_FROM', 'De');
+define('_MA_XMSTATS_EXPORT_FILTER_TRANSFER_DATE_TO', 'à');
 
 // Permission
 define('_MA_XMSTATS_PERMISSION', 'Autorisations');
