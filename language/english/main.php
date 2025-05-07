@@ -53,6 +53,10 @@ define('_MA_XMSTATS_EXPORT_FILTER_ARTICLE_NAME_DESC', 'Le nom du composant peut 
 define('_MA_XMSTATS_EXPORT_FILTER_ALLF', 'Toutes');
 define('_MA_XMSTATS_EXPORT_FILTER_ALLM', 'Tous');
 define('_MA_XMSTATS_EXPORT_FILTER_STOCK_TITLE', 'Filtre pour l\'export des stocks');
+define('_MA_XMSTATS_EXPORT_FILTER_TRANSFER_TITLE', 'Filtre pour l\'export des transferts');
+define('_MA_XMSTATS_EXPORT_FILTER_TRANSFER_DATE_RANGE', 'Inclure une plage de dates');
+define('_MA_XMSTATS_EXPORT_FILTER_TRANSFER_DATE_FROM', 'De');
+define('_MA_XMSTATS_EXPORT_FILTER_TRANSFER_DATE_TO', 'à');
 define('_MA_XMSTATS_EXPORT_KARDEX', 'Kardex');
 define('_MA_XMSTATS_EXPORT_STATUS_A', 'Activé');
 define('_MA_XMSTATS_EXPORT_STATUS_NA', 'Désactivé');
@@ -61,10 +65,10 @@ define('_MA_XMSTATS_EXPORT_STOCK_CANORDER', 'Commande autorisée');
 define('_MA_XMSTATS_EXPORT_STOCK_LOAN', 'Emprunt');
 define('_MA_XMSTATS_EXPORT_TITLE', 'Système d\'exportation des données');
 define('_MA_XMSTATS_EXPORT_TRANSFER', 'Transferts');
-define('_MA_XMSTATS_EXPORT_FILTER_TRANSFER_TITLE', 'Filtre pour l\'export des transferts');
-define('_MA_XMSTATS_EXPORT_FILTER_TRANSFER_DATE_RANGE', 'Inclure une plage de dates');
-define('_MA_XMSTATS_EXPORT_FILTER_TRANSFER_DATE_FROM', 'De');
-define('_MA_XMSTATS_EXPORT_FILTER_TRANSFER_DATE_TO', 'à');
+define('_MA_XMSTATS_EXPORT_TRANSFER_N0', 'N° de transfert');
+define('_MA_XMSTATS_EXPORT_TRANSFER_REFARTICLE', 'Référence de l\'article à transférer');
+define('_MA_XMSTATS_EXPORT_TRANSFER_CAT', 'Catégorie de l\'article à transférer');
+
 
 // Permission
 define('_MA_XMSTATS_PERMISSION', 'Autorisations');

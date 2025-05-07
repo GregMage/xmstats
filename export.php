@@ -635,28 +635,37 @@ switch ($op) {
                 $areas = Request::getArray('filter_area', 0, 'POST');
                 $categories = Request::getArray('filter_categorie', 0, 'POST');
                 $name = Request::getString('filter_name', '', 'POST');
+                $date_range = Request::getInt('filter_date_range', 0, 'POST');
+                $date_from = Request::getInt('filter_date_from', 0, 'POST');
+                $date_to = Request::getInt('filter_date_to', 0, 'POST');
+
 
                 // options d'export
                 $name_csv 	= 'Export_stock_' . time() . '.csv';
-                $path_csv 	= XOOPS_UPLOAD_PATH . '/xmstats/exports/stock/' . $name_csv;
-                $url_csv 	= XOOPS_UPLOAD_URL . '/xmstats/exports/stock/' . $name_csv;
+                $path_csv 	= XOOPS_UPLOAD_PATH . '/xmstats/exports/transfer/' . $name_csv;
+                $url_csv 	= XOOPS_UPLOAD_URL . '/xmstats/exports/transfer/' . $name_csv;
                 //supression des anciens fichiers
-                XmstatsUtility::delOldFiles(XOOPS_UPLOAD_PATH . '/xmstats/exports/stock/', 'csv');
+                XmstatsUtility::delOldFiles(XOOPS_UPLOAD_PATH . '/xmstats/exports/transfer/', 'csv');
                 // En-tête fixe du CSV
-                $header = [_MA_XMSTOCK_STOCK_AREA, _MA_XMARTICLE_ARTICLE_REFERENCE, _MA_XMARTICLE_INDEX_ARTICLE, _MA_XMARTICLE_ARTICLE_DESC, _MA_XMARTICLE_ARTICLE_CATEGORY
-                           , _MA_XMSTOCK_TRANSFER_PRICE, _MA_XMSTOCK_STOCK_LOCATION, _MA_XMSTOCK_STOCK_MINI, _MA_XMSTOCK_STOCK_AMOUNT, _MA_XMSTOCK_STOCK_TYPE, _MA_XMSTATS_EXPORT_STOCK_CANORDER];
+                $header = [_MA_XMSTATS_EXPORT_TRANSFER_N0, _MA_XMSTOCK_TRANSFER_REF, _MA_XMSTOCK_TRANSFER_DESC, _MA_XMSTATS_EXPORT_TRANSFER_REFARTICLE, _MA_XMSTOCK_TRANSFER_ARTICLE,
+                           _MA_XMSTATS_EXPORT_TRANSFER_CAT, _MA_XMSTOCK_TRANSFER_TYPE, _MA_XMSTOCK_TRANSFER_STAREA, _MA_XMSTOCK_TRANSFER_DESTINATION, _MA_XMSTOCK_AREA_AMOUNT,
+                           _MA_XMSTOCK_TRANSFER_DATE, _MA_XMSTOCK_TRANSFER_TIME, _MA_XMSTOCK_TRANSFER_USER, _MA_XMSTOCK_TRANSFER_NEEDSYEAR];
+                var_dump($header);
+                // Récupération des transferts avec leurs articles
 
-                // Récupération des stock avec leurs articles
-                $sql  = "SELECT a.article_name, a.article_description, a.article_reference, c.category_name, t.area_name, s.*";
-                $sql .= " FROM " . $xoopsDB->prefix('xmarticle_article') . " AS a";
+                $sql  = "SELECT t.*, u.uname AS user_name_tr, aru.uname AS ar_user_name, a.article_name, a.article_reference, c.category_name, st.area_name AS st_area_name, ar.area_name AS ar_area_name, o.output_name";
+                $sql .= " FROM " . $xoopsDB->prefix('xmstock_transfer') . " AS t";
+                $sql .= " LEFT JOIN " . $xoopsDB->prefix('users') . " AS u ON t.transfer_userid = u.uid";
+                $sql .= " LEFT JOIN " . $xoopsDB->prefix('users') . " AS aru ON t.transfer_outputuserid = aru.uid";
+                $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmstock_area') . " AS st ON t.transfer_st_areaid = st.area_id";
+                $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmstock_area') . " AS ar ON t.transfer_ar_areaid = ar.area_id";
+                $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmstock_output') . " AS o ON t.transfer_outputid = o.output_id";
+                $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmarticle_article') . " AS a ON t.transfer_articleid = a.article_id";
                 $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmarticle_category') . " AS c ON a.article_cid = c.category_id";
-                $sql .= " INNER JOIN " . $xoopsDB->prefix('xmstock_stock') . " AS s ON a.article_id = s.stock_articleid";
-                $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmstock_area') . " AS t ON s.stock_areaid = t.area_id";
-                $sql_where[] = "a.article_status = 1";
-                $sql_where[] = "t.area_status = 1";
-                if (!in_array(0, $areas)){
+                //$sql_where[] = "a.article_status = 1";
+                /*if (!in_array(0, $areas)){
                     $sql_where[] = "s.stock_areaid IN (" . implode(',', $areas) . ")";
-                }
+                }*/
                 if (!in_array(0, $categories)){
                     $sql_where[] = "a.article_cid IN (" . implode(',', $categories) . ")";
                 }
@@ -666,17 +675,17 @@ switch ($op) {
                 if (!empty($sql_where)) {
                     $sql .= " WHERE " . implode(' AND ', $sql_where);
                 }
-                $sql .= " ORDER BY t.area_name ASC, a.article_name ASC";
+                $sql .= " ORDER BY t.transfer_date DESC";
                 $result = $xoopsDB->query($sql);
                 // Création du fichier d'export
-                $csv = fopen($path_csv, 'w+');
+                /*$csv = fopen($path_csv, 'w+');
                 //add BOM to fix UTF-8 in Excel
                 fputs($csv, $bom = ( chr(0xEF) . chr(0xBB) . chr(0xBF) ));
                 // En-tête du CSV
-                fputcsv($csv, $header, $separator);
+                fputcsv($csv, $header, $separator);*/
                 // Écriture des données dans le CSV
                 while ($row = $xoopsDB->fetchArray($result)) {
-                    switch ($row['stock_type']) {
+                    /*switch ($row['stock_type']) {
                         case 1:
                             $stockTypeText = _MA_XMSTOCK_STOCK_STANDARD;
                             break;
@@ -706,10 +715,11 @@ switch ($op) {
                         $stockTypeText,
                         $row['stock_order'] == 0 ? _YES : _NO
                     ];
-                    fputcsv($csv, $line, $separator);
+                    fputcsv($csv, $line, $separator);*/
+                    var_dump($row);
                 }
-                fclose($csv);
-                header("Location: $url_csv");
+                /*fclose($csv);
+                header("Location: $url_csv");*/
             }
             break;
 }
