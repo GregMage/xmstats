@@ -39,7 +39,7 @@
 					<span class="fa fa-cubes fa-2x"></span><p class="mt-2"><{$smarty.const._MA_XMSTATS_EXPORT_STOCK}></p>
 				</a>
 				<{/if}>
-				<{if $perm_transfert == true}>
+				<{if $perm_transfer == true}>
 				<a title="<{$smarty.const._MA_XMSTATS_EXPORT_TRANSFER}>" class="btn btn-light btn-lg" href="<{$xoops_url}>/modules/xmstats/export.php?op=transfer">
 					<span class="fa fa-random fa-2x"></span><p class="mt-2"><{$smarty.const._MA_XMSTATS_EXPORT_TRANSFER}></p>
 				</a>
