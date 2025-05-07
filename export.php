@@ -46,12 +46,18 @@ if ($perm_kardex == false && $perm_article == false && $perm_stock == false && $
     redirect_header('index.php', 5, _NOPERM);
 }
 if (xoops_isActiveModule('xmarticle')){
-		// Get Permission to view cat
         xoops_load('utility', 'xmarticle');
 		$viewPermissionCat = XmarticleUtility::getPermissionCat('xmarticle_view');
 } else {
         $viewPermissionCat = array();
 }
+if (xoops_isActiveModule('xmstock')){
+    xoops_load('utility', 'xmstock');
+    $viewPermissionArea = XmstockUtility::getPermissionArea('xmstock_view');
+} else {
+    $viewPermissionArea = array();
+}
+
 //options
 $separator 	= ';';
 
@@ -378,6 +384,11 @@ switch ($op) {
             $area = new XoopsFormSelect(_MA_XMSTATS_EXPORT_FILTER_AREA, 'filter_area', 0, 4, true);
             $criteria = new CriteriaCompo();
             $criteria->add(new Criteria('area_status', 1));
+            if (!empty($viewPermissionCat)) {
+                $criteria->add(new Criteria('area_id', '(' . implode(',', $viewPermissionArea) . ')', 'IN'));
+            } else {
+                redirect_header('index.php', 3, _NOPERM);
+            }
             $criteria->setSort('area_weight ASC, area_name');
             $criteria->setOrder('ASC');
             $area_arr = $areaHandler->getall($criteria);
@@ -536,6 +547,11 @@ switch ($op) {
             $area = new XoopsFormSelect(_MA_XMSTATS_EXPORT_FILTER_AREA, 'filter_area', 0, 4, true);
             $criteria = new CriteriaCompo();
             $criteria->add(new Criteria('area_status', 1));
+            if (!empty($viewPermissionCat)) {
+                $criteria->add(new Criteria('area_id', '(' . implode(',', $viewPermissionArea) . ')', 'IN'));
+            } else {
+                redirect_header('index.php', 3, _NOPERM);
+            }
             $criteria->setSort('area_weight ASC, area_name');
             $criteria->setOrder('ASC');
             $area_arr = $areaHandler->getall($criteria);
