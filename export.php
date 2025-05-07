@@ -45,7 +45,13 @@ $xoopsTpl->assign('perm_transfert', $perm_transfert);
 if ($perm_kardex == false && $perm_article == false && $perm_stock == false && $perm_transfert == false){
     redirect_header('index.php', 5, _NOPERM);
 }
-
+if (xoops_isActiveModule('xmarticle')){
+		// Get Permission to view cat
+        xoops_load('utility', 'xmarticle');
+		$viewPermissionCat = XmarticleUtility::getPermissionCat('xmarticle_view');
+} else {
+        $viewPermissionCat = array();
+}
 //options
 $separator 	= ';';
 
@@ -117,6 +123,11 @@ switch ($op) {
             $categorie = new XoopsFormSelect(_MA_XMSTATS_EXPORT_FILTER_ARTICLE_CATEGORIE, 'filter_categorie', 0, 4, true);
             $criteria = new CriteriaCompo();
             $criteria->add(new Criteria('category_status', 1));
+            if (!empty($viewPermissionCat)) {
+                $criteria->add(new Criteria('category_id', '(' . implode(',', $viewPermissionCat) . ')', 'IN'));
+            } else {
+                redirect_header('index.php', 3, _NOPERM);
+            }
             $criteria->setSort('category_weight ASC, category_name');
             $criteria->setOrder('ASC');
             $categorie_arr = $categorieHandler->getall($criteria);
@@ -381,6 +392,11 @@ switch ($op) {
             $categorie = new XoopsFormSelect(_MA_XMSTATS_EXPORT_FILTER_ARTICLE_CATEGORIE, 'filter_categorie', 0, 4, true);
             $criteria = new CriteriaCompo();
             $criteria->add(new Criteria('category_status', 1));
+            if (!empty($viewPermissionCat)) {
+                $criteria->add(new Criteria('category_id', '(' . implode(',', $viewPermissionCat) . ')', 'IN'));
+            } else {
+                redirect_header('index.php', 3, _NOPERM);
+            }
             $criteria->setSort('category_weight ASC, category_name');
             $criteria->setOrder('ASC');
             $categorie_arr = $categorieHandler->getall($criteria);
@@ -534,6 +550,11 @@ switch ($op) {
             $categorie = new XoopsFormSelect(_MA_XMSTATS_EXPORT_FILTER_ARTICLE_CATEGORIE, 'filter_categorie', 0, 4, true);
             $criteria = new CriteriaCompo();
             $criteria->add(new Criteria('category_status', 1));
+            if (!empty($viewPermissionCat)) {
+                $criteria->add(new Criteria('category_id', '(' . implode(',', $viewPermissionCat) . ')', 'IN'));
+            } else {
+                redirect_header('index.php', 3, _NOPERM);
+            }
             $criteria->setSort('category_weight ASC, category_name');
             $criteria->setOrder('ASC');
             $categorie_arr = $categorieHandler->getall($criteria);
