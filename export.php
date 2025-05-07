@@ -50,6 +50,7 @@ if ($perm_kardex == false && $perm_article == false && $perm_stock == false && $
 $separator 	= ';';
 
 $op = Request::getString('op', '', 'REQUEST');
+$xoopsTpl->assign('op', $op);
 
 switch ($op) {
     case 'kardex':
@@ -402,9 +403,103 @@ switch ($op) {
 
             $xoopsTpl->assign('form', $form->render());
         }
-
-
         break;
+
+    case 'export_stock':
+        if ($perm_stock == false){
+            redirect_header('export.php', 5, _NOPERM);
+        }
+        if (xoops_isActiveModule('xmarticle') && xoops_isActiveModule('xmstock')){
+            $helper_xmarticle = Helper::getHelper('xmarticle');
+            $helper_xmarticle->loadLanguage('main');
+            $categorieHandler  = $helper_xmarticle->getHandler('xmarticle_category');
+
+            $helper_xmstock = Helper::getHelper('xmstock');
+            $helper_xmstock->loadLanguage('main');
+            $areaHandler  = $helper_xmstock->getHandler('xmstock_area');
+
+            // récupération des valeurs du formulaire
+            $areas = Request::getArray('filter_area', 0, 'POST');
+            $categories = Request::getArray('filter_categorie', 0, 'POST');
+            $name = Request::getString('filter_name', '', 'POST');
+
+            // options d'export
+            $name_csv 	= 'Export_stock_' . time() . '.csv';
+            $path_csv 	= XOOPS_UPLOAD_PATH . '/xmstats/exports/stock/' . $name_csv;
+            $url_csv 	= XOOPS_UPLOAD_URL . '/xmstats/exports/stock/' . $name_csv;
+            //supression des anciens fichiers
+            XmstatsUtility::delOldFiles(XOOPS_UPLOAD_PATH . '/xmstats/exports/stock/', 'csv');
+            // En-tête fixe du CSV
+            $header = [_MA_XMSTOCK_STOCK_AREA, _MA_XMARTICLE_ARTICLE_REFERENCE, _MA_XMARTICLE_INDEX_ARTICLE, _MA_XMARTICLE_ARTICLE_DESC, _MA_XMARTICLE_ARTICLE_CATEGORY
+                       , _MA_XMSTOCK_TRANSFER_PRICE, _MA_XMSTOCK_STOCK_LOCATION, _MA_XMSTOCK_STOCK_MINI, _MA_XMSTOCK_STOCK_AMOUNT, _MA_XMSTOCK_STOCK_TYPE, _MA_XMSTATS_EXPORT_STOCK_CANORDER];
+
+            // Récupération des stock avec leurs articles
+            $sql  = "SELECT a.article_name, a.article_description, a.article_reference, c.category_name, t.area_name, s.*";
+            $sql .= " FROM " . $xoopsDB->prefix('xmarticle_article') . " AS a";
+            $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmarticle_category') . " AS c ON a.article_cid = c.category_id";
+            $sql .= " INNER JOIN " . $xoopsDB->prefix('xmstock_stock') . " AS s ON a.article_id = s.stock_articleid";
+            $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmstock_area') . " AS t ON s.stock_areaid = t.area_id";
+            $sql_where[] = "a.article_status = 1";
+            $sql_where[] = "t.area_status = 1";
+            if (!in_array(0, $areas)){
+                $sql_where[] = "s.stock_areaid IN (" . implode(',', $areas) . ")";
+            }
+            if (!in_array(0, $categories)){
+                $sql_where[] = "a.article_cid IN (" . implode(',', $categories) . ")";
+            }
+            if (!empty($name)) {
+                $sql_where[] = "a.article_name LIKE '%" . $xoopsDB->escape($name) . "%'";
+            }
+            if (!empty($sql_where)) {
+                $sql .= " WHERE " . implode(' AND ', $sql_where);
+            }
+            $sql .= " ORDER BY t.area_name ASC, a.article_name ASC";
+            $result = $xoopsDB->query($sql);
+            // Création du fichier d'export
+            $csv = fopen($path_csv, 'w+');
+            //add BOM to fix UTF-8 in Excel
+            fputs($csv, $bom = ( chr(0xEF) . chr(0xBB) . chr(0xBF) ));
+            // En-tête du CSV
+            fputcsv($csv, $header, $separator);
+            // Écriture des données dans le CSV
+            while ($row = $xoopsDB->fetchArray($result)) {
+                switch ($row['stock_type']) {
+                    case 1:
+                        $stockTypeText = _MA_XMSTOCK_STOCK_STANDARD;
+                        break;
+                    case 2:
+                        $stockTypeText = _MA_XMSTOCK_STOCK_ML;
+                        break;
+                    case 3:
+                        $stockTypeText = _MA_XMSTATS_EXPORT_STOCK_LOAN;
+                        break;
+                    case 4:
+                        $stockTypeText = _MA_XMSTOCK_STOCK_FREE;
+                        break;
+                    case 5:
+                        $stockTypeText = _MA_XMSTOCK_STOCK_SURFACE;
+                        break;
+                }
+                $line = [
+                    $row['area_name'],
+                    $row['article_reference'],
+                    $row['article_name'],
+                    $row['article_description'],
+                    $row['category_name'],
+                    $row['stock_price'],
+                    $row['stock_location'],
+                    $row['stock_mini'],
+                    $row['stock_amount'],
+                    $stockTypeText,
+                    $row['stock_order'] == 0 ? _YES : _NO
+                ];
+                fputcsv($csv, $line, $separator);
+            }
+            fclose($csv);
+            header("Location: $url_csv");
+        }
+        break;
+
     case 'transfer':
         if ($perm_transfert == false){
             redirect_header('export.php', 5, _NOPERM);

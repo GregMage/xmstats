@@ -2,7 +2,19 @@
 	<nav aria-label="breadcrumb">
 		<ol class="breadcrumb">
 			<li class="breadcrumb-item"><a href="index.php"><{$index_module}></a></li>
+			<{if $op == ''}>
 			<li class="breadcrumb-item active" aria-current="page"><{$smarty.const._MI_XMSTATS_SUB_EXPORT}></li>
+			<{/if}>
+			<{if $op == 'article' || $op == 'stock' || $op == 'transfer'}>
+			<li class="breadcrumb-item"><a href="<{$xoops_url}>/modules/xmstats/export.php"><{$smarty.const._MI_XMSTATS_SUB_EXPORT}></a></li>
+			<{/if}>
+			<{if $op == 'article'}>
+			<li class="breadcrumb-item active" aria-current="page"><{$smarty.const._MA_XMSTATS_EXPORT_ARTICLE}></li>
+			<{/if}>
+			<{if $op == 'stock'}>
+				<li class="breadcrumb-item active" aria-current="page"><{$smarty.const._MA_XMSTATS_EXPORT_ARTICLE}></li>
+			<{/if}>
+
 		</ol>
 	</nav>
 	<h2><{$smarty.const._MA_XMSTATS_EXPORT_TITLE}></h2>

@@ -57,6 +57,8 @@ define('_MA_XMSTATS_EXPORT_KARDEX', 'Kardex');
 define('_MA_XMSTATS_EXPORT_STATUS_A', 'Activé');
 define('_MA_XMSTATS_EXPORT_STATUS_NA', 'Désactivé');
 define('_MA_XMSTATS_EXPORT_STOCK', 'Stocks');
+define('_MA_XMSTATS_EXPORT_STOCK_CANORDER', 'Commande autorisée');
+define('_MA_XMSTATS_EXPORT_STOCK_LOAN', 'Emprunt');
 define('_MA_XMSTATS_EXPORT_TITLE', 'Système d\'exportation des données');
 define('_MA_XMSTATS_EXPORT_TRANSFER', 'Transferts');
 
