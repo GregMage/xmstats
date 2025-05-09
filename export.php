@@ -53,9 +53,9 @@ if (xoops_isActiveModule('xmarticle')){
 }
 if (xoops_isActiveModule('xmstock')){
     xoops_load('utility', 'xmstock');
-    $viewPermissionArea = XmstockUtility::getPermissionArea('xmstock_view');
+    $managePermissionArea = XmstockUtility::getPermissionArea('xmstock_manage');
 } else {
-    $viewPermissionArea = array();
+    $managePermissionArea = array();
 }
 
 //options
@@ -228,7 +228,7 @@ switch ($op) {
                 $field_arr = $fieldHandler->getall($criteria);
                 $fields_label = [];
                 foreach (array_keys($field_arr) as $i) {
-                    $header[] = $field_arr[$i]->getVar('field_name');
+                    $header[] = htmlspecialchars_decode($field_arr[$i]->getVar('field_name'));
                     $fields[$i] = $field_arr[$i]->getVar('field_name');
                     if ($field_arr[$i]->getVar('field_type') == 'label'){
                         $fields_label[$i] = $field_arr[$i]->getVar('field_default');
@@ -246,6 +246,8 @@ switch ($op) {
             $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmarticle_field') . " AS f ON fd.fielddata_fid = f.field_id";
             if (!in_array(0, $categories)){
                 $sql_where[] = "a.article_cid IN (" . implode(',', $categories) . ")";
+            } else {
+                $sql_where[] = "a.article_cid IN (" . implode(',', $viewPermissionCat) . ")";
             }
             if ($status === 0 || $status === 1) {
                 $sql_where[] = "a.article_status = $status";
@@ -385,7 +387,7 @@ switch ($op) {
             $criteria = new CriteriaCompo();
             $criteria->add(new Criteria('area_status', 1));
             if (!empty($viewPermissionCat)) {
-                $criteria->add(new Criteria('area_id', '(' . implode(',', $viewPermissionArea) . ')', 'IN'));
+                $criteria->add(new Criteria('area_id', '(' . implode(',', $managePermissionArea) . ')', 'IN'));
             } else {
                 redirect_header('index.php', 3, _NOPERM);
             }
@@ -473,6 +475,8 @@ switch ($op) {
             }
             if (!in_array(0, $categories)){
                 $sql_where[] = "a.article_cid IN (" . implode(',', $categories) . ")";
+            } else {
+                $sql_where[] = "a.article_cid IN (" . implode(',', $viewPermissionCat) . ")";
             }
             if (!empty($name)) {
                 $sql_where[] = "a.article_name LIKE '%" . $xoopsDB->escape($name) . "%'";
@@ -548,7 +552,7 @@ switch ($op) {
             $criteria = new CriteriaCompo();
             $criteria->add(new Criteria('area_status', 1));
             if (!empty($viewPermissionCat)) {
-                $criteria->add(new Criteria('area_id', '(' . implode(',', $viewPermissionArea) . ')', 'IN'));
+                $criteria->add(new Criteria('area_id', '(' . implode(',', $managePermissionArea) . ')', 'IN'));
             } else {
                 redirect_header('index.php', 3, _NOPERM);
             }
@@ -663,11 +667,16 @@ switch ($op) {
                 $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmarticle_article') . " AS a ON t.transfer_articleid = a.article_id";
                 $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmarticle_category') . " AS c ON a.article_cid = c.category_id";
                 //$sql_where[] = "a.article_status = 1";
-                /*if (!in_array(0, $areas)){
-                    $sql_where[] = "s.stock_areaid IN (" . implode(',', $areas) . ")";
-                }*/
+                if (!in_array(0, $areas)){
+                    $areas_ids = implode(',', $areas);
+                    $sql_where[] = "(t.transfer_st_areaid IN (" . $areas_ids . ") OR t.transfer_ar_areaid IN (" . $areas_ids . "))";
+                } else {
+                    $sql_where[] = "(t.transfer_st_areaid IN (" . implode(',', $managePermissionArea) . ") OR t.transfer_ar_areaid IN (" . implode(',', $managePermissionArea) . "))";
+                }
                 if (!in_array(0, $categories)){
                     $sql_where[] = "a.article_cid IN (" . implode(',', $categories) . ")";
+                } else {
+                    $sql_where[] = "a.article_cid IN (" . implode(',', $viewPermissionCat) . ")";
                 }
                 if (!empty($name)) {
                     $sql_where[] = "a.article_name LIKE '%" . $xoopsDB->escape($name) . "%'";
