@@ -652,9 +652,9 @@ switch ($op) {
                 // En-tête fixe du CSV
                 $header = [_MA_XMSTATS_EXPORT_TRANSFER_N0, _MA_XMSTOCK_TRANSFER_REF, _MA_XMSTOCK_TRANSFER_DESC, _MA_XMSTATS_EXPORT_TRANSFER_REFARTICLE, _MA_XMSTOCK_TRANSFER_ARTICLE,
                            _MA_XMSTATS_EXPORT_TRANSFER_CAT, _MA_XMSTOCK_TRANSFER_TYPE, _MA_XMSTOCK_TRANSFER_STAREA, _MA_XMSTOCK_TRANSFER_DESTINATION, _MA_XMSTOCK_AREA_AMOUNT,
-                           _MA_XMSTOCK_TRANSFER_DATE, _MA_XMSTOCK_TRANSFER_TIME, _MA_XMSTOCK_TRANSFER_USER, _MA_XMSTOCK_TRANSFER_NEEDSYEAR];
+                           _MA_XMSTOCK_TRANSFER_DATE, _MA_XMSTOCK_TRANSFER_TIME, _MA_XMSTOCK_TRANSFER_USER, _MA_XMSTOCK_TRANSFER_NEEDSYEAR, _MA_XMSTOCK_STATUS];
                 // Récupération des transferts avec les informations
-                $sql  = "SELECT t.*, u.uname AS user_name_tr, aru.uname AS ar_user_name, a.article_name, a.article_reference, c.category_name, st.area_name AS st_area_name, ar.area_name AS ar_area_name, o.output_name";
+                $sql  = "SELECT t.*, u.uname AS user_name, aru.uname AS ar_user_name, a.article_name, a.article_reference, c.category_name, st.area_name AS st_area_name, ar.area_name AS ar_area_name, o.output_name";
                 $sql .= " FROM " . $xoopsDB->prefix('xmstock_transfer') . " AS t";
                 $sql .= " LEFT JOIN " . $xoopsDB->prefix('users') . " AS u ON t.transfer_userid = u.uid";
                 $sql .= " LEFT JOIN " . $xoopsDB->prefix('users') . " AS aru ON t.transfer_outputuserid = aru.uid";
@@ -687,53 +687,62 @@ switch ($op) {
                 $sql .= " ORDER BY t.transfer_date DESC";
                 $result = $xoopsDB->query($sql);
                 // Création du fichier d'export
-                /*$csv = fopen($path_csv, 'w+');
+                $csv = fopen($path_csv, 'w+');
                 //add BOM to fix UTF-8 in Excel
                 fputs($csv, $bom = ( chr(0xEF) . chr(0xBB) . chr(0xBF) ));
                 // En-tête du CSV
-                fputcsv($csv, $header, $separator);*/
+                fputcsv($csv, $header, $separator);
                 // Écriture des données dans le CSV
                 while ($row = $xoopsDB->fetchArray($result)) {
-                    /*switch ($row['stock_type']) {
-                        case 1:
-                            $stockTypeText = _MA_XMSTOCK_STOCK_STANDARD;
+                    switch ($row['transfer_type']) {
+                        case 'E':
+                            $transferTypeText = _MA_XMSTOCK_TRANSFER_ENTRYINSTOCK;
+                            $transferStAreaText = '';
+                            $transferArAreaText = _MA_XMSTOCK_TRANSFER_STOCK . $row['ar_area_name'];
                             break;
-                        case 2:
-                            $stockTypeText = _MA_XMSTOCK_STOCK_ML;
+                        case 'O':
+                            $transferTypeText = _MA_XMSTOCK_TRANSFER_OUTOFSTOCK;
+                            $transferStAreaText =$row['st_area_name'];
+                            if ($row['transfer_outputuserid'] == 0){
+                                if ($row['transfer_outputid'] != 0){
+                                    $transferArAreaText = $row['output_name'];
+                                } else {
+                                    $transferArAreaText = '';
+                                }
+                            } else {
+                                $transferArAreaText = $row['ar_user_name'];
+                            }
                             break;
-                        case 3:
-                            $stockTypeText = _MA_XMSTATS_EXPORT_STOCK_LOAN;
-                            break;
-                        case 4:
-                            $stockTypeText = _MA_XMSTOCK_STOCK_FREE;
-                            break;
-                        case 5:
-                            $stockTypeText = _MA_XMSTOCK_STOCK_SURFACE;
+                        case 'T':
+                            $transferTypeText = _MA_XMSTOCK_TRANSFER_TRANSFEROFSTOCK;
+                            $transferStAreaText =$row['st_area_name'];
+                            $transferArAreaText = _MA_XMSTOCK_TRANSFER_STOCK . $row['ar_area_name'];
                             break;
                     }
                     $line = [
-                        $row['area_name'],
+                        $row['transfer_id'],
+                        $row['transfer_ref'],
+                        $row['transfer_description'],
                         $row['article_reference'],
                         $row['article_name'],
-                        $row['article_description'],
                         $row['category_name'],
-                        $row['stock_price'],
-                        $row['stock_location'],
-                        $row['stock_mini'],
-                        $row['stock_amount'],
-                        $stockTypeText,
-                        $row['stock_order'] == 0 ? _YES : _NO
+                        $transferTypeText,
+                        $transferStAreaText,
+                        $transferArAreaText,
+                        $row['transfer_amount'],
+                        formatTimestamp($row['transfer_date'], 's'),
+                        substr(formatTimestamp($row['transfer_date'], 'm'), -5),
+                        $row['user_name'],
+                        $row['transfer_needsyear'],
+                        $row['transfer_status'] == 1 ? _MA_XMSTOCK_STATUS_EXECUTED : _MA_XMSTOCK_STATUS_WAITING
                     ];
-                    fputcsv($csv, $line, $separator);*/
-                    var_dump($row);
+                    fputcsv($csv, $line, $separator);
                 }
-                /*fclose($csv);
-                header("Location: $url_csv");*/
+                fclose($csv);
+                header("Location: $url_csv");
             }
             break;
 }
-
-
 
 $keywords = '';
 //SEO
