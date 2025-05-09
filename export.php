@@ -640,9 +640,8 @@ switch ($op) {
                 $categories = Request::getArray('filter_categorie', 0, 'POST');
                 $name = Request::getString('filter_name', '', 'POST');
                 $date_range = Request::getInt('filter_date_range', 0, 'POST');
-                $date_from = Request::getInt('filter_date_from', 0, 'POST');
-                $date_to = Request::getInt('filter_date_to', 0, 'POST');
-
+                $date_from = strtotime(Request::getString('filter_date_from', '', 'POST'));
+                $date_to = strtotime(Request::getString('filter_date_to', '', 'POST'));
 
                 // options d'export
                 $name_csv 	= 'Export_stock_' . time() . '.csv';
@@ -654,9 +653,7 @@ switch ($op) {
                 $header = [_MA_XMSTATS_EXPORT_TRANSFER_N0, _MA_XMSTOCK_TRANSFER_REF, _MA_XMSTOCK_TRANSFER_DESC, _MA_XMSTATS_EXPORT_TRANSFER_REFARTICLE, _MA_XMSTOCK_TRANSFER_ARTICLE,
                            _MA_XMSTATS_EXPORT_TRANSFER_CAT, _MA_XMSTOCK_TRANSFER_TYPE, _MA_XMSTOCK_TRANSFER_STAREA, _MA_XMSTOCK_TRANSFER_DESTINATION, _MA_XMSTOCK_AREA_AMOUNT,
                            _MA_XMSTOCK_TRANSFER_DATE, _MA_XMSTOCK_TRANSFER_TIME, _MA_XMSTOCK_TRANSFER_USER, _MA_XMSTOCK_TRANSFER_NEEDSYEAR];
-                var_dump($header);
-                // Récupération des transferts avec leurs articles
-
+                // Récupération des transferts avec les informations
                 $sql  = "SELECT t.*, u.uname AS user_name_tr, aru.uname AS ar_user_name, a.article_name, a.article_reference, c.category_name, st.area_name AS st_area_name, ar.area_name AS ar_area_name, o.output_name";
                 $sql .= " FROM " . $xoopsDB->prefix('xmstock_transfer') . " AS t";
                 $sql .= " LEFT JOIN " . $xoopsDB->prefix('users') . " AS u ON t.transfer_userid = u.uid";
@@ -680,6 +677,9 @@ switch ($op) {
                 }
                 if (!empty($name)) {
                     $sql_where[] = "a.article_name LIKE '%" . $xoopsDB->escape($name) . "%'";
+                }
+                if ($date_range == 1){
+                    $sql_where[] = "(t.transfer_date >= " . $date_from . " AND t.transfer_date <= " . $date_to . ")";
                 }
                 if (!empty($sql_where)) {
                     $sql .= " WHERE " . implode(' AND ', $sql_where);
