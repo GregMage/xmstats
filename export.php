@@ -544,6 +544,7 @@ switch ($op) {
             $categorieHandler  = $helper_xmarticle->getHandler('xmarticle_category');
 
             $helper_xmstock = Helper::getHelper('xmstock');
+            $helper_xmstock->loadLanguage('main');
             $areaHandler  = $helper_xmstock->getHandler('xmstock_area');
 
             $helper_xmprod = Helper::getHelper('xmprod');
@@ -605,17 +606,24 @@ switch ($op) {
                 $month = 1;
             }
 
-            $dateTray = new XoopsFormElementTray(_MA_XMSTATS_EXPORT_FILTER_TRANSFER_DATE_RANGE);
+            $dateTray = new XoopsFormElementTray(_MA_XMSTATS_EXPORT_FILTER_DATE_RANGE);
             $dateRadio = new XoopsFormRadio("<div class='form-inline'>", 'filter_date_range', 0);
             $dateRadio->addOption(0, _NO);
             $dateRadio->addOption(1, _YES);
             $dateTray->addElement($dateRadio);
-            $dateFrom = new XoopsFormTextDateSelect(_MA_XMSTATS_EXPORT_FILTER_TRANSFER_DATE_FROM, 'filter_date_from', 15, mktime(0, 0, 0, $month, 1, $years));
-            $dateTo = new XoopsFormTextDateSelect(_MA_XMSTATS_EXPORT_FILTER_TRANSFER_DATE_TO, 'filter_date_to', 15, time());
+            $dateFrom = new XoopsFormTextDateSelect(_MA_XMSTATS_EXPORT_FILTER_DATE_FROM, 'filter_date_from', 15, mktime(0, 0, 0, $month, 1, $years));
+            $dateTo = new XoopsFormTextDateSelect(_MA_XMSTATS_EXPORT_FILTER_DATE_TO, 'filter_date_to', 15, time());
             $dateTray->addElement($dateFrom);
             $dateTray->addElement($dateTo);
             $dateTray->addElement(new XoopsFormLabel("</div>"));
             $form->addElement($dateTray);
+
+            // status
+            $status = new XoopsFormRadio(_MA_XMSTATS_EXPORT_FILTER_TRANSFER_STATUS, 'filter_status', 2);
+            $status->addOption(0, _MA_XMSTOCK_STATUS_WAITING);
+            $status->addOption(1, _MA_XMSTOCK_STATUS_EXECUTED);
+            $status->addOption(2, _MA_XMSTATS_EXPORT_FILTER_ALLM);
+            $form->addElement($status, true);
 
             // export
             $form->addElement(new XoopsFormButton('', 'submit', _SUBMIT, 'submit'));
@@ -646,6 +654,7 @@ switch ($op) {
                 $date_range = Request::getInt('filter_date_range', 0, 'POST');
                 $date_from = strtotime(Request::getString('filter_date_from', '', 'POST'));
                 $date_to = strtotime(Request::getString('filter_date_to', '', 'POST'));
+                $status = Request::getInt('filter_status', 0, 'POST');
 
                 // options d'export
                 $name_csv 	= 'Export_stock_' . time() . '.csv';
@@ -684,6 +693,9 @@ switch ($op) {
                 }
                 if ($date_range == 1){
                     $sql_where[] = "(t.transfer_date >= " . $date_from . " AND t.transfer_date <= " . $date_to . ")";
+                }
+                if ($status === 0 || $status === 1) {
+                    $sql_where[] = "t.transfer_status = $status";
                 }
                 if (!empty($sql_where)) {
                     $sql .= " WHERE " . implode(' AND ', $sql_where);
