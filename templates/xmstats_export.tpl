@@ -44,6 +44,16 @@
 					<span class="fa fa-random fa-2x"></span><p class="mt-2"><{$smarty.const._MA_XMSTATS_EXPORT_TRANSFER}></p>
 				</a>
 				<{/if}>
+				<{if $perm_loan == true}>
+				<a title="<{$smarty.const._MA_XMSTATS_EXPORT_LOAN}>" class="btn btn-light btn-lg" href="<{$xoops_url}>/modules/xmstats/export.php?op=loan">
+					<span class="fa fa-exchange fa-2x"></span><p class="mt-2"><{$smarty.const._MA_XMSTATS_EXPORT_LOAN}></p>
+				</a>
+				<{/if}>
+				<{if $perm_overdraft == true}>
+				<a title="<{$smarty.const._MA_XMSTATS_EXPORT_OVERDRAFT}>" class="btn btn-light btn-lg" href="<{$xoops_url}>/modules/xmstats/export.php?op=overdraft">
+					<span class="fa fa-battery-quarter fa-2x"></span><p class="mt-2"><{$smarty.const._MA_XMSTATS_EXPORT_OVERDRAFT}></p>
+				</a>
+				<{/if}>
 			<{/if}>
 		</div>
 	</div>

@@ -58,6 +58,8 @@ define('_MA_XMSTATS_EXPORT_FILTER_TRANSFER_DATE_RANGE', 'Inclure une plage de da
 define('_MA_XMSTATS_EXPORT_FILTER_TRANSFER_DATE_FROM', 'De');
 define('_MA_XMSTATS_EXPORT_FILTER_TRANSFER_DATE_TO', 'à');
 define('_MA_XMSTATS_EXPORT_KARDEX', 'Kardex');
+define('_MA_XMSTATS_EXPORT_LOAN', 'Prêts');
+define('_MA_XMSTATS_EXPORT_OVERDRAFT', 'Découverts');
 define('_MA_XMSTATS_EXPORT_STATUS_A', 'Activé');
 define('_MA_XMSTATS_EXPORT_STATUS_NA', 'Désactivé');
 define('_MA_XMSTATS_EXPORT_STOCK', 'Stocks');
@@ -73,7 +75,9 @@ define('_MA_XMSTATS_EXPORT_TRANSFER_CAT', 'Catégorie de l\'article à transfér
 // Permission
 define('_MA_XMSTATS_PERMISSION', 'Autorisations');
 define('_MA_XMSTATS_PERMISSION_DSC', 'Choisissez les groupes qui peuvent effectuer les actions suivantes');
-define('_MA_XMSTATS_PERMISSION_OTHER_2', 'Exportation Kardex');
-define('_MA_XMSTATS_PERMISSION_OTHER_4', 'Exportation composants');
-define('_MA_XMSTATS_PERMISSION_OTHER_8', 'Exportation stocks');
-define('_MA_XMSTATS_PERMISSION_OTHER_16', 'Exportation transferts');
+define('_MA_XMSTATS_PERMISSION_OTHER_KARDEX', 'Exportation Kardex');
+define('_MA_XMSTATS_PERMISSION_OTHER_ARTICLE', 'Exportation composants');
+define('_MA_XMSTATS_PERMISSION_OTHER_STOCK', 'Exportation stocks');
+define('_MA_XMSTATS_PERMISSION_OTHER_TRANSFER', 'Exportation transferts');
+define('_MA_XMSTATS_PERMISSION_OTHER_LOAN', 'Exportation prêts');
+define('_MA_XMSTATS_PERMISSION_OTHER_OVERDRAFT', 'Exportation découverts');

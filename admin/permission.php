@@ -25,10 +25,12 @@ $moduleAdmin = Admin::getInstance();
 $moduleAdmin->displayNavigation('permission.php');
 
 $global_perms_array    = [
-	'2' => _MA_XMSTATS_PERMISSION_OTHER_2 ,
-	'4' => _MA_XMSTATS_PERMISSION_OTHER_4 ,
-	'8' => _MA_XMSTATS_PERMISSION_OTHER_8 ,
-	'16' => _MA_XMSTATS_PERMISSION_OTHER_16
+	'1' => _MA_XMSTATS_PERMISSION_OTHER_KARDEX ,
+	'2' => _MA_XMSTATS_PERMISSION_OTHER_ARTICLE ,
+	'3' => _MA_XMSTATS_PERMISSION_OTHER_STOCK ,
+	'4' => _MA_XMSTATS_PERMISSION_OTHER_TRANSFER ,
+	'5' => _MA_XMSTATS_PERMISSION_OTHER_LOAN ,
+	'6' => _MA_XMSTATS_PERMISSION_OTHER_OVERDRAFT
 ];
 
 $permissionsForm = new XoopsGroupPermForm(_MA_XMSTATS_PERMISSION, $helper->getModule()->getVar('mid'), 'xmstats_other', _MA_XMSTATS_PERMISSION_DSC, 'admin/permission.php');
