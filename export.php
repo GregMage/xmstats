@@ -676,7 +676,6 @@ switch ($op) {
                 $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmstock_output') . " AS o ON t.transfer_outputid = o.output_id";
                 $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmarticle_article') . " AS a ON t.transfer_articleid = a.article_id";
                 $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmarticle_category') . " AS c ON a.article_cid = c.category_id";
-                //$sql_where[] = "a.article_status = 1";
                 if (!in_array(0, $areas)){
                     $areas_ids = implode(',', $areas);
                     $sql_where[] = "(t.transfer_st_areaid IN (" . $areas_ids . ") OR t.transfer_ar_areaid IN (" . $areas_ids . "))";
@@ -758,6 +757,198 @@ switch ($op) {
                 header("Location: $url_csv");
             }
             break;
+
+    case 'loan':
+        if ($perm_loan == false){
+            redirect_header('export.php', 5, _NOPERM);
+        }
+        if (xoops_isActiveModule('xmarticle') && xoops_isActiveModule('xmstock')){
+            $helper_xmarticle = Helper::getHelper('xmarticle');
+            $categorieHandler  = $helper_xmarticle->getHandler('xmarticle_category');
+
+            $helper_xmstock = Helper::getHelper('xmstock');
+            $helper_xmstock->loadLanguage('main');
+            $areaHandler  = $helper_xmstock->getHandler('xmstock_area');
+
+            $helper_xmprod = Helper::getHelper('xmprod');
+
+            include_once XOOPS_ROOT_PATH . '/class/xoopsformloader.php';
+            $form = new XoopsThemeForm(_MA_XMSTATS_EXPORT_FILTER_TRANSFER_TITLE, 'form', $_SERVER['REQUEST_URI'], 'post', true);
+
+            // area
+            $area = new XoopsFormSelect(_MA_XMSTATS_EXPORT_FILTER_AREA, 'filter_area', 0, 4, true);
+            $criteria = new CriteriaCompo();
+            $criteria->add(new Criteria('area_status', 1));
+            if (!empty($viewPermissionCat)) {
+                $criteria->add(new Criteria('area_id', '(' . implode(',', $managePermissionArea) . ')', 'IN'));
+            } else {
+                redirect_header('index.php', 3, _NOPERM);
+            }
+            $criteria->setSort('area_weight ASC, area_name');
+            $criteria->setOrder('ASC');
+            $area_arr = $areaHandler->getall($criteria);
+            $area->addOption(0, _MA_XMSTATS_EXPORT_FILTER_ALLM);
+            foreach (array_keys($area_arr) as $i) {
+                $area->addOption($area_arr[$i]->getVar('area_id'), $area_arr[$i]->getVar('area_name'));
+            }
+            $area->setDescription(_MA_XMSTATS_EXPORT_FILTER_AREA_DESC);
+            $form->addElement($area, true);
+
+            // categorie
+            $categorie = new XoopsFormSelect(_MA_XMSTATS_EXPORT_FILTER_ARTICLE_CATEGORIE, 'filter_categorie', 0, 4, true);
+            $criteria = new CriteriaCompo();
+            $criteria->add(new Criteria('category_status', 1));
+            if (!empty($viewPermissionCat)) {
+                $criteria->add(new Criteria('category_id', '(' . implode(',', $viewPermissionCat) . ')', 'IN'));
+            } else {
+                redirect_header('index.php', 3, _NOPERM);
+            }
+            $criteria->setSort('category_weight ASC, category_name');
+            $criteria->setOrder('ASC');
+            $categorie_arr = $categorieHandler->getall($criteria);
+            $categorie->addOption(0, _MA_XMSTATS_EXPORT_FILTER_ALLF);
+            foreach (array_keys($categorie_arr) as $i) {
+                $categorie->addOption($categorie_arr[$i]->getVar('category_id'), $categorie_arr[$i]->getVar('category_name'));
+            }
+            $categorie->setDescription(_MA_XMSTATS_EXPORT_FILTER_ARTICLE_CATEGORIE_DESC);
+            $form->addElement($categorie, true);
+
+            // name
+            $name = new XoopsFormText(_MA_XMSTATS_EXPORT_FILTER_ARTICLE_NAME, 'filter_name', 50, 255, '');
+            $name->setDescription(_MA_XMSTATS_EXPORT_FILTER_ARTICLE_NAME_DESC);
+            $form->addElement($name, false);
+
+            // Date
+            $currentYear = date('Y');
+            if (xoops_isActiveModule('xmprod')){
+                $helper_xmprod = Helper::getHelper('xmprod');
+                $month = $helper_xmprod->getConfig('general_month', 0);
+                $years = date('m') < $month ? $currentYear - 1 : $currentYear;
+            } else {
+                $years = $currentYear;
+                $month = 1;
+            }
+
+            $dateTray = new XoopsFormElementTray(_MA_XMSTATS_EXPORT_FILTER_DATE_RANGE);
+            $dateRadio = new XoopsFormRadio("<div class='form-inline'>", 'filter_date_range', 0);
+            $dateRadio->addOption(0, _NO);
+            $dateRadio->addOption(1, _YES);
+            $dateTray->addElement($dateRadio);
+            $dateFrom = new XoopsFormTextDateSelect(_MA_XMSTATS_EXPORT_FILTER_DATE_FROM, 'filter_date_from', 15, mktime(0, 0, 0, $month, 1, $years));
+            $dateTo = new XoopsFormTextDateSelect(_MA_XMSTATS_EXPORT_FILTER_DATE_TO, 'filter_date_to', 15, time());
+            $dateTray->addElement($dateFrom);
+            $dateTray->addElement($dateTo);
+            $dateTray->addElement(new XoopsFormLabel("</div>"));
+            $form->addElement($dateTray);
+
+            // status
+            $status = new XoopsFormRadio(_MA_XMSTOCK_LOAN_STATUS, 'filter_status', 2);
+            $status->addOption(0, _MA_XMSTOCK_LOAN_STATUS_C);
+            $status->addOption(1, _MA_XMSTOCK_LOAN_STATUS_L);
+            $status->addOption(2, _MA_XMSTATS_EXPORT_FILTER_ALLM);
+            $form->addElement($status, true);
+
+            // export
+            $form->addElement(new XoopsFormButton('', 'submit', _SUBMIT, 'submit'));
+
+            $form->addElement(new XoopsFormHidden('op', 'export_loan'));
+
+            $xoopsTpl->assign('form', $form->render());
+        }
+        break;
+
+        case 'export_loan':
+            if ($perm_transfer == false){
+                redirect_header('export.php', 5, _NOPERM);
+            }
+            if (xoops_isActiveModule('xmarticle') && xoops_isActiveModule('xmstock')){
+                $helper_xmarticle = Helper::getHelper('xmarticle');
+                $helper_xmarticle->loadLanguage('main');
+                $categorieHandler  = $helper_xmarticle->getHandler('xmarticle_category');
+
+                $helper_xmstock = Helper::getHelper('xmstock');
+                $helper_xmstock->loadLanguage('main');
+                $areaHandler  = $helper_xmstock->getHandler('xmstock_area');
+
+                // récupération des valeurs du formulaire
+                $areas = Request::getArray('filter_area', 0, 'POST');
+                $categories = Request::getArray('filter_categorie', 0, 'POST');
+                $name = Request::getString('filter_name', '', 'POST');
+                $date_range = Request::getInt('filter_date_range', 0, 'POST');
+                $date_from = strtotime(Request::getString('filter_date_from', '', 'POST'));
+                $date_to = strtotime(Request::getString('filter_date_to', '', 'POST'));
+                $status = Request::getInt('filter_status', 0, 'POST');
+
+                // options d'export
+                $name_csv 	= 'Export_stock_' . time() . '.csv';
+                $path_csv 	= XOOPS_UPLOAD_PATH . '/xmstats/exports/loan/' . $name_csv;
+                $url_csv 	= XOOPS_UPLOAD_URL . '/xmstats/exports/loan/' . $name_csv;
+                //supression des anciens fichiers
+                XmstatsUtility::delOldFiles(XOOPS_UPLOAD_PATH . '/xmstats/exports/loan/', 'csv');
+                // En-tête fixe du CSV
+                $header = [_MA_XMSTATS_EXPORT_LOAN_N0, _MA_XMSTATS_EXPORT_LOAN_REFARTICLE, _MA_XMSTOCK_LOAN_ARTICLE, _MA_XMSTATS_EXPORT_LOAN_CAT,
+                           _MA_XMSTOCK_LOAN_AREA, _MA_XMSTOCK_LOAN_AMOUNT, _MA_XMSTOCK_LOAN_DATE, _MA_XMSTOCK_LOAN_RDATE, _MA_XMSTOCK_LOAN_USERID,
+                           _MA_XMSTOCK_LOAN_STATUS];
+                // Récupération des prêts avec les informations
+                $sql  = "SELECT l.*, u.uname AS user_name, a.article_name, a.article_reference, c.category_name, s.area_name";
+                $sql .= " FROM " . $xoopsDB->prefix('xmstock_loan') . " AS l";
+                $sql .= " LEFT JOIN " . $xoopsDB->prefix('users') . " AS u ON l.loan_userid = u.uid";
+                $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmstock_area') . " AS s ON l.loan_areaid = s.area_id";
+                $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmarticle_article') . " AS a ON l.loan_articleid = a.article_id";
+                $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmarticle_category') . " AS c ON a.article_cid = c.category_id";
+                if (!in_array(0, $areas)){
+                    $areas_ids = implode(',', $areas);
+                    $sql_where[] = "l.loan_areaid IN (" . $areas_ids . ")";
+                } else {
+                    $sql_where[] = "l.loan_areaid IN (" . implode(',', $managePermissionArea) . ")";
+                }
+                if (!in_array(0, $categories)){
+                    $sql_where[] = "a.article_cid IN (" . implode(',', $categories) . ")";
+                } else {
+                    $sql_where[] = "a.article_cid IN (" . implode(',', $viewPermissionCat) . ")";
+                }
+                if (!empty($name)) {
+                    $sql_where[] = "a.article_name LIKE '%" . $xoopsDB->escape($name) . "%'";
+                }
+                if ($date_range == 1){
+                    $sql_where[] = "(l.loan_date >= " . $date_from . " AND l.loan_date <= " . $date_to . ")";
+                }
+                if ($status === 0 || $status === 1) {
+                    $sql_where[] = "l.loan_status = $status";
+                }
+                if (!empty($sql_where)) {
+                    $sql .= " WHERE " . implode(' AND ', $sql_where);
+                }
+                $sql .= " ORDER BY l.loan_date ASC";
+                $result = $xoopsDB->query($sql);
+                // Création du fichier d'export
+                $csv = fopen($path_csv, 'w+');
+                //add BOM to fix UTF-8 in Excel
+                fputs($csv, $bom = ( chr(0xEF) . chr(0xBB) . chr(0xBF) ));
+                // En-tête du CSV
+                fputcsv($csv, $header, $separator);
+                // Écriture des données dans le CSV
+                while ($row = $xoopsDB->fetchArray($result)) {
+                    $loanRdateTexte = ($row['loan_status'] == 0) ? formatTimestamp($row['loan_rdate'], 's') : '';
+                    $line = [
+                        $row['loan_id'],
+                        $row['article_reference'],
+                        $row['article_name'],
+                        $row['category_name'],
+                        $row['area_name'],
+                        $row['loan_amount'],
+                        formatTimestamp($row['loan_date'], 's'),
+                        ($row['loan_status'] == 0) ? formatTimestamp($row['loan_rdate'], 's') : '',
+                        $row['user_name'],
+                        $row['loan_status'] == 1 ? _MA_XMSTOCK_LOAN_STATUS_L : _MA_XMSTOCK_LOAN_STATUS_C
+                    ];
+                    fputcsv($csv, $line, $separator);
+                }
+                fclose($csv);
+                header("Location: $url_csv");
+            }
+            break;
+
 }
 
 $keywords = '';

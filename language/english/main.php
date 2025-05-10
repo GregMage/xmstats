@@ -59,6 +59,9 @@ define('_MA_XMSTATS_EXPORT_FILTER_STOCK_TITLE', 'Filtre pour l\'export des stock
 define('_MA_XMSTATS_EXPORT_FILTER_TRANSFER_TITLE', 'Filtre pour l\'export des transferts');
 define('_MA_XMSTATS_EXPORT_KARDEX', 'Kardex');
 define('_MA_XMSTATS_EXPORT_LOAN', 'Prêts');
+define('_MA_XMSTATS_EXPORT_LOAN_N0', 'N° du prêt');
+define('_MA_XMSTATS_EXPORT_LOAN_REFARTICLE', 'Référence de l\'article prêté');
+define('_MA_XMSTATS_EXPORT_LOAN_CAT', 'catégorie l\'article prêté');
 define('_MA_XMSTATS_EXPORT_OVERDRAFT', 'Découverts');
 define('_MA_XMSTATS_EXPORT_STATUS_A', 'Activé');
 define('_MA_XMSTATS_EXPORT_STATUS_NA', 'Désactivé');
@@ -70,7 +73,7 @@ define('_MA_XMSTATS_EXPORT_TRANSFER', 'Transferts');
 define('_MA_XMSTATS_EXPORT_TRANSFER_CAT', 'Catégorie de l\'article à transférer');
 define('_MA_XMSTATS_EXPORT_TRANSFER_N0', 'N° de transfert');
 define('_MA_XMSTATS_EXPORT_TRANSFER_REFARTICLE', 'Référence de l\'article à transférer');
-define('_MA_XMSTATS_EXPORT_FILTER_TRANSFER_STATUS', 'Statut du transfere');
+define('_MA_XMSTATS_EXPORT_FILTER_TRANSFER_STATUS', 'Statut du transfert');
 
 // Permission
 define('_MA_XMSTATS_PERMISSION', 'Autorisations');
