@@ -40,12 +40,14 @@ $perm_stock = $gpermHandler->checkRight('xmstats_other', 3, $groups, $moduleHand
 $perm_transfer = $gpermHandler->checkRight('xmstats_other', 4, $groups, $moduleHandler->getVar('mid'), false) ? true : false;
 $perm_loan = $gpermHandler->checkRight('xmstats_other', 5, $groups, $moduleHandler->getVar('mid'), false) ? true : false;
 $perm_overdraft= $gpermHandler->checkRight('xmstats_other', 6, $groups, $moduleHandler->getVar('mid'), false) ? true : false;
+$perm_order= $gpermHandler->checkRight('xmstats_other', 7, $groups, $moduleHandler->getVar('mid'), false) ? true : false;
 $xoopsTpl->assign('perm_kardex', $perm_kardex);
 $xoopsTpl->assign('perm_article', $perm_article);
 $xoopsTpl->assign('perm_stock', $perm_stock);
 $xoopsTpl->assign('perm_transfer', $perm_transfer);
 $xoopsTpl->assign('perm_loan', $perm_loan);
 $xoopsTpl->assign('perm_overdraft', $perm_overdraft);
+$xoopsTpl->assign('perm_order', $perm_order);
 if ($perm_kardex == false && $perm_article == false && $perm_stock == false && $perm_transfer == false){
     redirect_header('index.php', 5, _NOPERM);
 }

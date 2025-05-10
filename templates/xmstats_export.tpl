@@ -54,6 +54,11 @@
 					<span class="fa fa-battery-quarter fa-2x"></span><p class="mt-2"><{$smarty.const._MA_XMSTATS_EXPORT_OVERDRAFT}></p>
 				</a>
 				<{/if}>
+				<{if $perm_order == true}>
+				<a title="<{$smarty.const._MA_XMSTATS_EXPORT_ORDER}>" class="btn btn-light btn-lg" href="<{$xoops_url}>/modules/xmstats/export.php?op=order">
+					<span class="fa fa-list-alt fa-2x"></span><p class="mt-2"><{$smarty.const._MA_XMSTATS_EXPORT_ORDER}></p>
+				</a>
+				<{/if}>
 			<{/if}>
 		</div>
 	</div>

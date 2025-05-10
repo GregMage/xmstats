@@ -30,7 +30,8 @@ $global_perms_array    = [
 	'3' => _MA_XMSTATS_PERMISSION_OTHER_STOCK ,
 	'4' => _MA_XMSTATS_PERMISSION_OTHER_TRANSFER ,
 	'5' => _MA_XMSTATS_PERMISSION_OTHER_LOAN ,
-	'6' => _MA_XMSTATS_PERMISSION_OTHER_OVERDRAFT
+	'6' => _MA_XMSTATS_PERMISSION_OTHER_OVERDRAFT,
+	'7' => _MA_XMSTATS_PERMISSION_OTHER_ORDER
 ];
 
 $permissionsForm = new XoopsGroupPermForm(_MA_XMSTATS_PERMISSION, $helper->getModule()->getVar('mid'), 'xmstats_other', _MA_XMSTATS_PERMISSION_DSC, 'admin/permission.php');
