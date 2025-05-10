@@ -28,6 +28,9 @@ function xoops_module_install_xmstats()
         XOOPS_ROOT_PATH . '/uploads/' . $namemodule . '/exports/kardex',
         XOOPS_ROOT_PATH . '/uploads/' . $namemodule . '/exports/stock',
         XOOPS_ROOT_PATH . '/uploads/' . $namemodule . '/exports/transfer',
+        XOOPS_ROOT_PATH . '/uploads/' . $namemodule . '/exports/loan',
+        XOOPS_ROOT_PATH . '/uploads/' . $namemodule . '/exports/overdraft',
+        XOOPS_ROOT_PATH . '/uploads/' . $namemodule . '/exports/order',
     ];
     // Création des dossiers
     foreach ($directories as $dir) {
