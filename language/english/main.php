@@ -40,6 +40,7 @@ define('_MA_XMSTATS_INDEX_XMSTOCK', 'Gestion de stock');
 
 // export.php
 define('_MA_XMSTATS_EXPORT_ARTICLE', 'Composants');
+define('_MA_XMSTATS_EXPORT_CATARTICLE', 'Catégorie du composant');
 define('_MA_XMSTATS_EXPORT_FILTER_AREA', 'Lieu de stockage');
 define('_MA_XMSTATS_EXPORT_FILTER_AREA_DESC', 'Il est possible de choisir plusieurs lieux de stockages en utilisant la touche CTRL.');
 define('_MA_XMSTATS_EXPORT_FILTER_ARTICLE_USER', 'Créateur du composant');
@@ -60,11 +61,13 @@ define('_MA_XMSTATS_EXPORT_FILTER_TRANSFER_TITLE', 'Filtre pour l\'export des tr
 define('_MA_XMSTATS_EXPORT_KARDEX', 'Kardex');
 define('_MA_XMSTATS_EXPORT_LOAN', 'Prêts');
 define('_MA_XMSTATS_EXPORT_LOAN_N0', 'N° du prêt');
-define('_MA_XMSTATS_EXPORT_LOAN_REFARTICLE', 'Référence de l\'article prêté');
-define('_MA_XMSTATS_EXPORT_LOAN_CAT', 'catégorie l\'article prêté');
+define('_MA_XMSTATS_EXPORT_LOAN_REFARTICLE', 'Référence du composant prêté');
+define('_MA_XMSTATS_EXPORT_LOAN_CAT', 'catégorie du composant prêté');
 define('_MA_XMSTATS_EXPORT_NO_DATA', 'Aucune donnée à exporter');
 define('_MA_XMSTATS_EXPORT_OVERDRAFT', 'Découverts');
+define('_MA_XMSTATS_EXPORT_OVERDRAFT_STOCKMINI', 'Stock minimum');
 define('_MA_XMSTATS_EXPORT_ORDER', 'Commandes');
+define('_MA_XMSTATS_EXPORT_REFARTICLE', 'Référence du composant');
 define('_MA_XMSTATS_EXPORT_STATUS_A', 'Activé');
 define('_MA_XMSTATS_EXPORT_STATUS_NA', 'Désactivé');
 define('_MA_XMSTATS_EXPORT_STOCK', 'Stocks');
@@ -72,9 +75,9 @@ define('_MA_XMSTATS_EXPORT_STOCK_CANORDER', 'Commande autorisée');
 define('_MA_XMSTATS_EXPORT_STOCK_LOAN', 'Emprunt');
 define('_MA_XMSTATS_EXPORT_TITLE', 'Système d\'exportation des données');
 define('_MA_XMSTATS_EXPORT_TRANSFER', 'Transferts');
-define('_MA_XMSTATS_EXPORT_TRANSFER_CAT', 'Catégorie de l\'article à transférer');
+define('_MA_XMSTATS_EXPORT_TRANSFER_CAT', 'Catégorie du composant à transférer');
 define('_MA_XMSTATS_EXPORT_TRANSFER_N0', 'N° de transfert');
-define('_MA_XMSTATS_EXPORT_TRANSFER_REFARTICLE', 'Référence de l\'article à transférer');
+define('_MA_XMSTATS_EXPORT_TRANSFER_REFARTICLE', 'Référence du composant à transférer');
 define('_MA_XMSTATS_EXPORT_FILTER_TRANSFER_STATUS', 'Statut du transfert');
 
 // Permission
