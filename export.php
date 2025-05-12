@@ -269,109 +269,113 @@ switch ($op) {
             }
             $sql .= " ORDER BY a.article_id ASC";
             $result = $xoopsDB->query($sql);
-            // Préparation des données pour chaque article
-            $articles = [];
-            while ($row = $xoopsDB->fetchArray($result)) {
-                $articleId = $row['article_id'];
-                if (!isset($articles[$articleId])) {
-                    // Initialisation de l'article
-                    $articles[$articleId] = [
-                        'article_reference' => $row['article_reference'],
-                        'article_name' => $row['article_name'],
-                        'article_description' => $row['article_description'],
-                        'category_name' => $row['category_name'],
-                        'article_uname' => $row['uname'],
-                        'article_date' => date('d-m-Y', $row['article_date']),
-                        'article_counter' => $row['article_counter'],
-                        'article_status' => $row['article_status'],
-                        'fields' => array_fill_keys(array_keys($fields), '') // Champs initialisés à vide
-                    ];
-                }
-                // Remplissage des champs si une valeur existe
-                if (!empty($row['fielddata_fid']) && isset($fields[$row['fielddata_fid']])) {
-                    switch ($row['field_type']) {
-                        case 'vs_text':
-                        case 's_text':
-                        case 'm_text':
-                        case 'l_text':
-                            $articles[$articleId]['fields'][$row['fielddata_fid']] = $row['fielddata_value1'];
-                            break;
-
-                        case 'radio_yn':
-                            if ($row['fielddata_value1'] == 0) {
-                                $articles[$articleId]['fields'][$row['fielddata_fid']] = _NO;
-                            } else {
-                                $articles[$articleId]['fields'][$row['fielddata_fid']] = _YES;
-                            }
-                            break;
-
-                        case 'select':
-                        case 'radio':
-                            $field_options = unserialize($row['field_options']);
-                            $articles[$articleId]['fields'][$row['fielddata_fid']] = $field_options[$row['fielddata_value1']];
-                            break;
-
-                        case 'text':
-                            $articles[$articleId]['fields'][$row['fielddata_fid']] = $row['fielddata_value2'];
-                            break;
-
-                        case 'select_multi':
-                        case 'checkbox':
-                            $field_options = unserialize($row['field_options']);
-                            if (empty($articles[$articleId]['fields'][$row['fielddata_fid']])){
-                                $articles[$articleId]['fields'][$row['fielddata_fid']] = $field_options[$row['fielddata_value3']];
-                            } else {
-                                $articles[$articleId]['fields'][$row['fielddata_fid']] = $articles[$articleId]['fields'][$row['fielddata_fid']] .
-                                $helper_xmarticle->getConfig('general_separator', '-') . $field_options[$row['fielddata_value3']];
-                            }
-                            break;
-
-                        case 'number':
-                            $articles[$articleId]['fields'][$row['fielddata_fid']] = $row['fielddata_value4'];
-                            break;
-                        // provisoir
-                        default:
-                            echo 'default<br>';
-                            $articles[$articleId]['fields'][$row['fielddata_fid']] = $row['fielddata_value1'];
-                            break;
+            if ($xoopsDB->getRowsNum($result) > 0) {
+                // Préparation des données pour chaque article
+                $articles = [];
+                while ($row = $xoopsDB->fetchArray($result)) {
+                    $articleId = $row['article_id'];
+                    if (!isset($articles[$articleId])) {
+                        // Initialisation de l'article
+                        $articles[$articleId] = [
+                            'article_reference' => $row['article_reference'],
+                            'article_name' => $row['article_name'],
+                            'article_description' => $row['article_description'],
+                            'category_name' => $row['category_name'],
+                            'article_uname' => $row['uname'],
+                            'article_date' => date('d-m-Y', $row['article_date']),
+                            'article_counter' => $row['article_counter'],
+                            'article_status' => $row['article_status'],
+                            'fields' => array_fill_keys(array_keys($fields), '') // Champs initialisés à vide
+                        ];
                     }
-                }
-                // remplissage des champs label
-                if (!empty($fields_label)) {
-                    $category_fields = unserialize($row['category_fields']);
-                    foreach (array_keys($fields_label) as $i) {
-                        if (in_array($i, $category_fields)) {
-                            $articles[$articleId]['fields'][$i] = $fields_label[$i];
+                    // Remplissage des champs si une valeur existe
+                    if (!empty($row['fielddata_fid']) && isset($fields[$row['fielddata_fid']])) {
+                        switch ($row['field_type']) {
+                            case 'vs_text':
+                            case 's_text':
+                            case 'm_text':
+                            case 'l_text':
+                                $articles[$articleId]['fields'][$row['fielddata_fid']] = $row['fielddata_value1'];
+                                break;
+
+                            case 'radio_yn':
+                                if ($row['fielddata_value1'] == 0) {
+                                    $articles[$articleId]['fields'][$row['fielddata_fid']] = _NO;
+                                } else {
+                                    $articles[$articleId]['fields'][$row['fielddata_fid']] = _YES;
+                                }
+                                break;
+
+                            case 'select':
+                            case 'radio':
+                                $field_options = unserialize($row['field_options']);
+                                $articles[$articleId]['fields'][$row['fielddata_fid']] = $field_options[$row['fielddata_value1']];
+                                break;
+
+                            case 'text':
+                                $articles[$articleId]['fields'][$row['fielddata_fid']] = $row['fielddata_value2'];
+                                break;
+
+                            case 'select_multi':
+                            case 'checkbox':
+                                $field_options = unserialize($row['field_options']);
+                                if (empty($articles[$articleId]['fields'][$row['fielddata_fid']])){
+                                    $articles[$articleId]['fields'][$row['fielddata_fid']] = $field_options[$row['fielddata_value3']];
+                                } else {
+                                    $articles[$articleId]['fields'][$row['fielddata_fid']] = $articles[$articleId]['fields'][$row['fielddata_fid']] .
+                                    $helper_xmarticle->getConfig('general_separator', '-') . $field_options[$row['fielddata_value3']];
+                                }
+                                break;
+
+                            case 'number':
+                                $articles[$articleId]['fields'][$row['fielddata_fid']] = $row['fielddata_value4'];
+                                break;
+                            // provisoir
+                            default:
+                                echo 'default<br>';
+                                $articles[$articleId]['fields'][$row['fielddata_fid']] = $row['fielddata_value1'];
+                                break;
+                        }
+                    }
+                    // remplissage des champs label
+                    if (!empty($fields_label)) {
+                        $category_fields = unserialize($row['category_fields']);
+                        foreach (array_keys($fields_label) as $i) {
+                            if (in_array($i, $category_fields)) {
+                                $articles[$articleId]['fields'][$i] = $fields_label[$i];
+                            }
                         }
                     }
                 }
-            }
-            // Création du fichier d'export
-            $csv = fopen($path_csv, 'w+');
-            //add BOM to fix UTF-8 in Excel
-            fputs($csv, $bom = ( chr(0xEF) . chr(0xBB) . chr(0xBF) ));
-            // En-tête du CSV
-            fputcsv($csv, $header, $separator);
-            // Écriture des données dans le CSV
-            foreach ($articles as $article) {
-                $line = [
-                    $article['article_reference'],
-                    $article['article_name'],
-                    $article['article_description'],
-                    $article['category_name'],
-                    $article['article_uname'],
-                    $article['article_date'],
-                    $article['article_counter'],
-                    $article['article_status'] == 1 ? _MA_XMARTICLE_STATUS_A : _MA_XMARTICLE_STATUS_NA
-                ];
-                // Ajout des valeurs des champs
-                foreach ($fields as $fieldId => $fieldName) {
-                    $line[] = $article['fields'][$fieldId];
+                // Création du fichier d'export
+                $csv = fopen($path_csv, 'w+');
+                //add BOM to fix UTF-8 in Excel
+                fputs($csv, $bom = ( chr(0xEF) . chr(0xBB) . chr(0xBF) ));
+                // En-tête du CSV
+                fputcsv($csv, $header, $separator);
+                // Écriture des données dans le CSV
+                foreach ($articles as $article) {
+                    $line = [
+                        $article['article_reference'],
+                        $article['article_name'],
+                        $article['article_description'],
+                        $article['category_name'],
+                        $article['article_uname'],
+                        $article['article_date'],
+                        $article['article_counter'],
+                        $article['article_status'] == 1 ? _MA_XMARTICLE_STATUS_A : _MA_XMARTICLE_STATUS_NA
+                    ];
+                    // Ajout des valeurs des champs
+                    foreach ($fields as $fieldId => $fieldName) {
+                        $line[] = $article['fields'][$fieldId];
+                    }
+                    fputcsv($csv, $line, $separator);
                 }
-                fputcsv($csv, $line, $separator);
+                fclose($csv);
+                header("Location: $url_csv");
+            } else {
+                $xoopsTpl->assign('error', _MA_XMSTATS_EXPORT_NO_DATA);
             }
-            fclose($csv);
-            header("Location: $url_csv");
         }
         break;
     case 'stock':
@@ -492,48 +496,52 @@ switch ($op) {
             }
             $sql .= " ORDER BY t.area_name ASC, a.article_name ASC";
             $result = $xoopsDB->query($sql);
-            // Création du fichier d'export
-            $csv = fopen($path_csv, 'w+');
-            //add BOM to fix UTF-8 in Excel
-            fputs($csv, $bom = ( chr(0xEF) . chr(0xBB) . chr(0xBF) ));
-            // En-tête du CSV
-            fputcsv($csv, $header, $separator);
-            // Écriture des données dans le CSV
-            while ($row = $xoopsDB->fetchArray($result)) {
-                switch ($row['stock_type']) {
-                    case 1:
-                        $stockTypeText = _MA_XMSTOCK_STOCK_STANDARD;
-                        break;
-                    case 2:
-                        $stockTypeText = _MA_XMSTOCK_STOCK_ML;
-                        break;
-                    case 3:
-                        $stockTypeText = _MA_XMSTATS_EXPORT_STOCK_LOAN;
-                        break;
-                    case 4:
-                        $stockTypeText = _MA_XMSTOCK_STOCK_FREE;
-                        break;
-                    case 5:
-                        $stockTypeText = _MA_XMSTOCK_STOCK_SURFACE;
-                        break;
+            if ($xoopsDB->getRowsNum($result) > 0) {
+                // Création du fichier d'export
+                $csv = fopen($path_csv, 'w+');
+                //add BOM to fix UTF-8 in Excel
+                fputs($csv, $bom = ( chr(0xEF) . chr(0xBB) . chr(0xBF) ));
+                // En-tête du CSV
+                fputcsv($csv, $header, $separator);
+                // Écriture des données dans le CSV
+                while ($row = $xoopsDB->fetchArray($result)) {
+                    switch ($row['stock_type']) {
+                        case 1:
+                            $stockTypeText = _MA_XMSTOCK_STOCK_STANDARD;
+                            break;
+                        case 2:
+                            $stockTypeText = _MA_XMSTOCK_STOCK_ML;
+                            break;
+                        case 3:
+                            $stockTypeText = _MA_XMSTATS_EXPORT_STOCK_LOAN;
+                            break;
+                        case 4:
+                            $stockTypeText = _MA_XMSTOCK_STOCK_FREE;
+                            break;
+                        case 5:
+                            $stockTypeText = _MA_XMSTOCK_STOCK_SURFACE;
+                            break;
+                    }
+                    $line = [
+                        $row['area_name'],
+                        $row['article_reference'],
+                        $row['article_name'],
+                        $row['article_description'],
+                        $row['category_name'],
+                        $row['stock_price'],
+                        $row['stock_location'],
+                        $row['stock_mini'],
+                        $row['stock_amount'],
+                        $stockTypeText,
+                        $row['stock_order'] == 0 ? _YES : _NO
+                    ];
+                    fputcsv($csv, $line, $separator);
                 }
-                $line = [
-                    $row['area_name'],
-                    $row['article_reference'],
-                    $row['article_name'],
-                    $row['article_description'],
-                    $row['category_name'],
-                    $row['stock_price'],
-                    $row['stock_location'],
-                    $row['stock_mini'],
-                    $row['stock_amount'],
-                    $stockTypeText,
-                    $row['stock_order'] == 0 ? _YES : _NO
-                ];
-                fputcsv($csv, $line, $separator);
+                fclose($csv);
+                header("Location: $url_csv");
+            } else {
+                $xoopsTpl->assign('error', _MA_XMSTATS_EXPORT_NO_DATA);
             }
-            fclose($csv);
-            header("Location: $url_csv");
         }
         break;
 
@@ -703,60 +711,88 @@ switch ($op) {
                 }
                 $sql .= " ORDER BY t.transfer_date DESC";
                 $result = $xoopsDB->query($sql);
-                // Création du fichier d'export
-                $csv = fopen($path_csv, 'w+');
-                //add BOM to fix UTF-8 in Excel
-                fputs($csv, $bom = ( chr(0xEF) . chr(0xBB) . chr(0xBF) ));
-                // En-tête du CSV
-                fputcsv($csv, $header, $separator);
-                // Écriture des données dans le CSV
-                while ($row = $xoopsDB->fetchArray($result)) {
-                    switch ($row['transfer_type']) {
-                        case 'E':
-                            $transferTypeText = _MA_XMSTOCK_TRANSFER_ENTRYINSTOCK;
-                            $transferStAreaText = '';
-                            $transferArAreaText = _MA_XMSTOCK_TRANSFER_STOCK . $row['ar_area_name'];
-                            break;
-                        case 'O':
-                            $transferTypeText = _MA_XMSTOCK_TRANSFER_OUTOFSTOCK;
-                            $transferStAreaText =$row['st_area_name'];
-                            if ($row['transfer_outputuserid'] == 0){
-                                if ($row['transfer_outputid'] != 0){
-                                    $transferArAreaText = $row['output_name'];
-                                } else {
-                                    $transferArAreaText = '';
-                                }
-                            } else {
-                                $transferArAreaText = $row['ar_user_name'];
-                            }
-                            break;
-                        case 'T':
-                            $transferTypeText = _MA_XMSTOCK_TRANSFER_TRANSFEROFSTOCK;
-                            $transferStAreaText =$row['st_area_name'];
-                            $transferArAreaText = _MA_XMSTOCK_TRANSFER_STOCK . $row['ar_area_name'];
-                            break;
+                if ($xoopsDB->getRowsNum($result) > 0) {
+                    // Préparation des données pour chaque transfert
+                    $transfers = [];
+                    while ($row = $xoopsDB->fetchArray($result)) {
+                        $transferId = $row['transfer_id'];
+                        if (!isset($transfers[$transferId])) {
+                            // Initialisation du transfert
+                            $transfers[$transferId] = [
+                                'transfer_id' => $row['transfer_id'],
+                                'article_reference' => $row['article_reference'],
+                                'article_name' => $row['article_name'],
+                                'category_name' => $row['category_name'],
+                                'st_area_name' => $row['st_area_name'],
+                                'ar_area_name' => $row['ar_area_name'],
+                                'output_name' => $row['output_name'],
+                                'transfer_amount' => $row['transfer_amount'],
+                                'transfer_date' => date('d-m-Y', $row['transfer_date']),
+                                'transfer_time' => date('H:i:s', $row['transfer_date']),
+                                'user_name' => $row['user_name'],
+                                'ar_user_name' => $row['ar_user_name'],
+                                'needsyear' => $row['needsyear'],
+                                'status' => $row['transfer_status']
+                            ];
+                        }
                     }
-                    $line = [
-                        $row['transfer_id'],
-                        $row['transfer_ref'],
-                        $row['transfer_description'],
-                        $row['article_reference'],
-                        $row['article_name'],
-                        $row['category_name'],
-                        $transferTypeText,
-                        $transferStAreaText,
-                        $transferArAreaText,
-                        $row['transfer_amount'],
-                        formatTimestamp($row['transfer_date'], 's'),
-                        substr(formatTimestamp($row['transfer_date'], 'm'), -5),
-                        $row['user_name'],
-                        $row['transfer_needsyear'],
-                        $row['transfer_status'] == 1 ? _MA_XMSTOCK_STATUS_EXECUTED : _MA_XMSTOCK_STATUS_WAITING
-                    ];
-                    fputcsv($csv, $line, $separator);
+                    // Création du fichier d'export
+                    $csv = fopen($path_csv, 'w+');
+                    //add BOM to fix UTF-8 in Excel
+                    fputs($csv, $bom = ( chr(0xEF) . chr(0xBB) . chr(0xBF) ));
+                    // En-tête du CSV
+                    fputcsv($csv, $header, $separator);
+                    // Écriture des données dans le CSV
+                    while ($row = $xoopsDB->fetchArray($result)) {
+                        switch ($row['transfer_type']) {
+                            case 'E':
+                                $transferTypeText = _MA_XMSTOCK_TRANSFER_ENTRYINSTOCK;
+                                $transferStAreaText = '';
+                                $transferArAreaText = _MA_XMSTOCK_TRANSFER_STOCK . $row['ar_area_name'];
+                                break;
+                            case 'O':
+                                $transferTypeText = _MA_XMSTOCK_TRANSFER_OUTOFSTOCK;
+                                $transferStAreaText =$row['st_area_name'];
+                                if ($row['transfer_outputuserid'] == 0){
+                                    if ($row['transfer_outputid'] != 0){
+                                        $transferArAreaText = $row['output_name'];
+                                    } else {
+                                        $transferArAreaText = '';
+                                    }
+                                } else {
+                                    $transferArAreaText = $row['ar_user_name'];
+                                }
+                                break;
+                            case 'T':
+                                $transferTypeText = _MA_XMSTOCK_TRANSFER_TRANSFEROFSTOCK;
+                                $transferStAreaText =$row['st_area_name'];
+                                $transferArAreaText = _MA_XMSTOCK_TRANSFER_STOCK . $row['ar_area_name'];
+                                break;
+                        }
+                        $line = [
+                            $row['transfer_id'],
+                            $row['transfer_ref'],
+                            $row['transfer_description'],
+                            $row['article_reference'],
+                            $row['article_name'],
+                            $row['category_name'],
+                            $transferTypeText,
+                            $transferStAreaText,
+                            $transferArAreaText,
+                            $row['transfer_amount'],
+                            formatTimestamp($row['transfer_date'], 's'),
+                            substr(formatTimestamp($row['transfer_date'], 'm'), -5),
+                            $row['user_name'],
+                            $row['transfer_needsyear'],
+                            $row['transfer_status'] == 1 ? _MA_XMSTOCK_STATUS_EXECUTED : _MA_XMSTOCK_STATUS_WAITING
+                        ];
+                        fputcsv($csv, $line, $separator);
+                    }
+                    fclose($csv);
+                    header("Location: $url_csv");
+                } else {
+                    $xoopsTpl->assign('error', _MA_XMSTATS_EXPORT_NO_DATA);
                 }
-                fclose($csv);
-                header("Location: $url_csv");
             }
             break;
 
@@ -923,31 +959,55 @@ switch ($op) {
                 }
                 $sql .= " ORDER BY l.loan_date ASC";
                 $result = $xoopsDB->query($sql);
-                // Création du fichier d'export
-                $csv = fopen($path_csv, 'w+');
-                //add BOM to fix UTF-8 in Excel
-                fputs($csv, $bom = ( chr(0xEF) . chr(0xBB) . chr(0xBF) ));
-                // En-tête du CSV
-                fputcsv($csv, $header, $separator);
-                // Écriture des données dans le CSV
-                while ($row = $xoopsDB->fetchArray($result)) {
-                    $loanRdateTexte = ($row['loan_status'] == 0) ? formatTimestamp($row['loan_rdate'], 's') : '';
-                    $line = [
-                        $row['loan_id'],
-                        $row['article_reference'],
-                        $row['article_name'],
-                        $row['category_name'],
-                        $row['area_name'],
-                        $row['loan_amount'],
-                        formatTimestamp($row['loan_date'], 's'),
-                        ($row['loan_status'] == 0) ? formatTimestamp($row['loan_rdate'], 's') : '',
-                        $row['user_name'],
-                        $row['loan_status'] == 1 ? _MA_XMSTOCK_LOAN_STATUS_L : _MA_XMSTOCK_LOAN_STATUS_C
-                    ];
-                    fputcsv($csv, $line, $separator);
+                if ($xoopsDB->getRowsNum($result) > 0) {
+                    // Préparation des données pour chaque prêt
+                    $loans = [];
+                    while ($row = $xoopsDB->fetchArray($result)) {
+                        $loanId = $row['loan_id'];
+                        if (!isset($loans[$loanId])) {
+                            // Initialisation du prêt
+                            $loans[$loanId] = [
+                                'loan_id' => $row['loan_id'],
+                                'article_reference' => $row['article_reference'],
+                                'article_name' => $row['article_name'],
+                                'category_name' => $row['category_name'],
+                                'area_name' => $row['area_name'],
+                                'loan_amount' => $row['loan_amount'],
+                                'loan_date' => date('d-m-Y', $row['loan_date']),
+                                'loan_rdate' => date('d-m-Y', $row['loan_rdate']),
+                                'user_name' => $row['user_name'],
+                                'loan_status' => $row['loan_status']
+                            ];
+                        }
+                    }
+                    // Création du fichier d'export
+                    $csv = fopen($path_csv, 'w+');
+                    //add BOM to fix UTF-8 in Excel
+                    fputs($csv, $bom = ( chr(0xEF) . chr(0xBB) . chr(0xBF) ));
+                    // En-tête du CSV
+                    fputcsv($csv, $header, $separator);
+                    // Écriture des données dans le CSV
+                    while ($row = $xoopsDB->fetchArray($result)) {
+                        $loanRdateTexte = ($row['loan_status'] == 0) ? formatTimestamp($row['loan_rdate'], 's') : '';
+                        $line = [
+                            $row['loan_id'],
+                            $row['article_reference'],
+                            $row['article_name'],
+                            $row['category_name'],
+                            $row['area_name'],
+                            $row['loan_amount'],
+                            formatTimestamp($row['loan_date'], 's'),
+                            ($row['loan_status'] == 0) ? formatTimestamp($row['loan_rdate'], 's') : '',
+                            $row['user_name'],
+                            $row['loan_status'] == 1 ? _MA_XMSTOCK_LOAN_STATUS_L : _MA_XMSTOCK_LOAN_STATUS_C
+                        ];
+                        fputcsv($csv, $line, $separator);
+                    }
+                    fclose($csv);
+                    header("Location: $url_csv");
+                } else {
+                    $xoopsTpl->assign('error', _MA_XMSTATS_EXPORT_NO_DATA);
                 }
-                fclose($csv);
-                header("Location: $url_csv");
             }
             break;
 

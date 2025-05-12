@@ -66,4 +66,9 @@
 	<{if $form|default:'' != ''}>
 		<{$form}>
 	<{/if}>
+	<{if $error|default:'' != ''}>
+		<div class="alert alert-danger" role="alert">
+			<{$error}>
+		</div>
+	<{/if}>
 </div><!-- .xmstats -->

@@ -62,6 +62,7 @@ define('_MA_XMSTATS_EXPORT_LOAN', 'Prêts');
 define('_MA_XMSTATS_EXPORT_LOAN_N0', 'N° du prêt');
 define('_MA_XMSTATS_EXPORT_LOAN_REFARTICLE', 'Référence de l\'article prêté');
 define('_MA_XMSTATS_EXPORT_LOAN_CAT', 'catégorie l\'article prêté');
+define('_MA_XMSTATS_EXPORT_NO_DATA', 'Aucune donnée à exporter');
 define('_MA_XMSTATS_EXPORT_OVERDRAFT', 'Découverts');
 define('_MA_XMSTATS_EXPORT_ORDER', 'Commandes');
 define('_MA_XMSTATS_EXPORT_STATUS_A', 'Activé');
