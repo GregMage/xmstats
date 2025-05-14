@@ -787,7 +787,7 @@ switch ($op) {
             $helper_xmprod = Helper::getHelper('xmprod');
 
             include_once XOOPS_ROOT_PATH . '/class/xoopsformloader.php';
-            $form = new XoopsThemeForm(_MA_XMSTATS_EXPORT_FILTER_TRANSFER_TITLE, 'form', $_SERVER['REQUEST_URI'], 'post', true);
+            $form = new XoopsThemeForm(_MA_XMSTATS_EXPORT_FILTER_LOAN_TITLE, 'form', $_SERVER['REQUEST_URI'], 'post', true);
 
             // area
             $area = new XoopsFormSelect(_MA_XMSTATS_EXPORT_FILTER_AREA, 'filter_area', 0, 4, true);
@@ -979,7 +979,7 @@ switch ($op) {
             $areaHandler  = $helper_xmstock->getHandler('xmstock_area');
 
             include_once XOOPS_ROOT_PATH . '/class/xoopsformloader.php';
-            $form = new XoopsThemeForm(_MA_XMSTATS_EXPORT_FILTER_TRANSFER_TITLE, 'form', $_SERVER['REQUEST_URI'], 'post', true);
+            $form = new XoopsThemeForm(_MA_XMSTATS_EXPORT_FILTER_OVERDRAFT_TITLE, 'form', $_SERVER['REQUEST_URI'], 'post', true);
 
             // area
             $area = new XoopsFormSelect(_MA_XMSTATS_EXPORT_FILTER_AREA, 'filter_area', 0, 4, true);
