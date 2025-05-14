@@ -1113,6 +1113,107 @@ switch ($op) {
                 }
             }
             break;
+
+    case 'order':
+        if ($perm_order == false){
+            redirect_header('export.php', 5, _NOPERM);
+        }
+        if (xoops_isActiveModule('xmarticle') && xoops_isActiveModule('xmstock')){
+            $helper_xmarticle = Helper::getHelper('xmarticle');
+            $categorieHandler  = $helper_xmarticle->getHandler('xmarticle_category');
+
+            $helper_xmstock = Helper::getHelper('xmstock');
+            $helper_xmstock->loadLanguage('main');
+            $areaHandler  = $helper_xmstock->getHandler('xmstock_area');
+
+            $helper_xmprod = Helper::getHelper('xmprod');
+
+            include_once XOOPS_ROOT_PATH . '/class/xoopsformloader.php';
+            $form = new XoopsThemeForm(_MA_XMSTATS_EXPORT_FILTER_ORDER_TITLE, 'form', $_SERVER['REQUEST_URI'], 'post', true);
+
+            // area
+            $area = new XoopsFormSelect(_MA_XMSTATS_EXPORT_FILTER_AREA, 'filter_area', 0, 4, true);
+            $criteria = new CriteriaCompo();
+            $criteria->add(new Criteria('area_status', 1));
+            if (!empty($viewPermissionCat)) {
+                $criteria->add(new Criteria('area_id', '(' . implode(',', $managePermissionArea) . ')', 'IN'));
+            } else {
+                redirect_header('index.php', 3, _NOPERM);
+            }
+            $criteria->setSort('area_weight ASC, area_name');
+            $criteria->setOrder('ASC');
+            $area_arr = $areaHandler->getall($criteria);
+            $area->addOption(0, _MA_XMSTATS_EXPORT_FILTER_ALLM);
+            foreach (array_keys($area_arr) as $i) {
+                $area->addOption($area_arr[$i]->getVar('area_id'), $area_arr[$i]->getVar('area_name'));
+            }
+            $area->setDescription(_MA_XMSTATS_EXPORT_FILTER_AREA_DESC);
+            $form->addElement($area, true);
+
+            // categorie
+            $categorie = new XoopsFormSelect(_MA_XMSTATS_EXPORT_FILTER_ARTICLE_CATEGORIE, 'filter_categorie', 0, 4, true);
+            $criteria = new CriteriaCompo();
+            $criteria->add(new Criteria('category_status', 1));
+            if (!empty($viewPermissionCat)) {
+                $criteria->add(new Criteria('category_id', '(' . implode(',', $viewPermissionCat) . ')', 'IN'));
+            } else {
+                redirect_header('index.php', 3, _NOPERM);
+            }
+            $criteria->setSort('category_weight ASC, category_name');
+            $criteria->setOrder('ASC');
+            $categorie_arr = $categorieHandler->getall($criteria);
+            $categorie->addOption(0, _MA_XMSTATS_EXPORT_FILTER_ALLF);
+            foreach (array_keys($categorie_arr) as $i) {
+                $categorie->addOption($categorie_arr[$i]->getVar('category_id'), $categorie_arr[$i]->getVar('category_name'));
+            }
+            $categorie->setDescription(_MA_XMSTATS_EXPORT_FILTER_ARTICLE_CATEGORIE_DESC);
+            $form->addElement($categorie, true);
+
+            // name
+            $name = new XoopsFormText(_MA_XMSTATS_EXPORT_FILTER_ARTICLE_NAME, 'filter_name', 50, 255, '');
+            $name->setDescription(_MA_XMSTATS_EXPORT_FILTER_ARTICLE_NAME_DESC);
+            $form->addElement($name, false);
+
+            // Date
+            $currentYear = date('Y');
+            if (xoops_isActiveModule('xmprod')){
+                $helper_xmprod = Helper::getHelper('xmprod');
+                $month = $helper_xmprod->getConfig('general_month', 0);
+                $years = date('m') < $month ? $currentYear - 1 : $currentYear;
+            } else {
+                $years = $currentYear;
+                $month = 1;
+            }
+
+            $dateTray = new XoopsFormElementTray(_MA_XMSTATS_EXPORT_FILTER_DATE_RANGE);
+            $dateRadio = new XoopsFormRadio("<div class='form-inline'>", 'filter_date_range', 0);
+            $dateRadio->addOption(0, _NO);
+            $dateRadio->addOption(1, _YES);
+            $dateTray->addElement($dateRadio);
+            $dateFrom = new XoopsFormTextDateSelect(_MA_XMSTATS_EXPORT_FILTER_DATE_FROM, 'filter_date_from', 15, mktime(0, 0, 0, $month, 1, $years));
+            $dateTo = new XoopsFormTextDateSelect(_MA_XMSTATS_EXPORT_FILTER_DATE_TO, 'filter_date_to', 15, time());
+            $dateTray->addElement($dateFrom);
+            $dateTray->addElement($dateTo);
+            $dateTray->addElement(new XoopsFormLabel("</div>"));
+            $form->addElement($dateTray);
+
+            // status
+            $status = new XoopsFormCheckBox(_MA_XMSTATS_EXPORT_FILTER_ORDER_STATUS, 'filter_status', [1, 2, 3, 4]);
+            $status->addOption(0, _MA_XMSTOCK_ORDER_STATUS_TITLE_0);
+            $status->addOption(1, _MA_XMSTOCK_ORDER_STATUS_TITLE_1);
+            $status->addOption(2, _MA_XMSTOCK_ORDER_STATUS_TITLE_2);
+            $status->addOption(3, _MA_XMSTOCK_ORDER_STATUS_TITLE_3);
+            $status->addOption(4, _MA_XMSTOCK_ORDER_STATUS_TITLE_4);
+            $form->addElement($status, true);
+
+            // export
+            $form->addElement(new XoopsFormButton('', 'submit', _SUBMIT, 'submit'));
+
+            $form->addElement(new XoopsFormHidden('op', 'export_order'));
+
+            $xoopsTpl->assign('form', $form->render());
+        }
+        break;
 }
 
 $keywords = '';

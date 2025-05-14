@@ -58,6 +58,7 @@ define('_MA_XMSTATS_EXPORT_FILTER_DATE_FROM', 'De');
 define('_MA_XMSTATS_EXPORT_FILTER_DATE_TO', 'à');
 define('_MA_XMSTATS_EXPORT_FILTER_LOAN_TITLE', 'Filtre pour l\'export des prêts');
 define('_MA_XMSTATS_EXPORT_FILTER_ORDER_TITLE', 'Filtre pour l\'export des commandes');
+define('_MA_XMSTATS_EXPORT_FILTER_ORDER_STATUS', 'Statut de la commande');
 define('_MA_XMSTATS_EXPORT_FILTER_OVERDRAFT_TITLE', 'Filtre pour l\'export des découverts');
 define('_MA_XMSTATS_EXPORT_FILTER_STOCK_TITLE', 'Filtre pour l\'export des stocks');
 define('_MA_XMSTATS_EXPORT_FILTER_TRANSFER_TITLE', 'Filtre pour l\'export des transferts');
