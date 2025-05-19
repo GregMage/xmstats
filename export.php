@@ -1150,30 +1150,6 @@ switch ($op) {
             $area->setDescription(_MA_XMSTATS_EXPORT_FILTER_AREA_DESC);
             $form->addElement($area, true);
 
-            // categorie
-            $categorie = new XoopsFormSelect(_MA_XMSTATS_EXPORT_FILTER_ARTICLE_CATEGORIE, 'filter_categorie', 0, 4, true);
-            $criteria = new CriteriaCompo();
-            $criteria->add(new Criteria('category_status', 1));
-            if (!empty($viewPermissionCat)) {
-                $criteria->add(new Criteria('category_id', '(' . implode(',', $viewPermissionCat) . ')', 'IN'));
-            } else {
-                redirect_header('index.php', 3, _NOPERM);
-            }
-            $criteria->setSort('category_weight ASC, category_name');
-            $criteria->setOrder('ASC');
-            $categorie_arr = $categorieHandler->getall($criteria);
-            $categorie->addOption(0, _MA_XMSTATS_EXPORT_FILTER_ALLF);
-            foreach (array_keys($categorie_arr) as $i) {
-                $categorie->addOption($categorie_arr[$i]->getVar('category_id'), $categorie_arr[$i]->getVar('category_name'));
-            }
-            $categorie->setDescription(_MA_XMSTATS_EXPORT_FILTER_ARTICLE_CATEGORIE_DESC);
-            $form->addElement($categorie, true);
-
-            // name
-            $name = new XoopsFormText(_MA_XMSTATS_EXPORT_FILTER_ARTICLE_NAME, 'filter_name', 50, 255, '');
-            $name->setDescription(_MA_XMSTATS_EXPORT_FILTER_ARTICLE_NAME_DESC);
-            $form->addElement($name, false);
-
             // Date
             $currentYear = date('Y');
             if (xoops_isActiveModule('xmprod')){
@@ -1185,7 +1161,7 @@ switch ($op) {
                 $month = 1;
             }
 
-            $dateTray = new XoopsFormElementTray(_MA_XMSTATS_EXPORT_FILTER_DATE_RANGE);
+            $dateTray = new XoopsFormElementTray(_MA_XMSTATS_EXPORT_ORDER_FILTER_DATE_RANGE);
             $dateRadio = new XoopsFormRadio("<div class='form-inline'>", 'filter_date_range', 0);
             $dateRadio->addOption(0, _NO);
             $dateRadio->addOption(1, _YES);
@@ -1204,7 +1180,7 @@ switch ($op) {
             $status->addOption(2, _MA_XMSTOCK_ORDER_STATUS_TITLE_2);
             $status->addOption(3, _MA_XMSTOCK_ORDER_STATUS_TITLE_3);
             $status->addOption(4, _MA_XMSTOCK_ORDER_STATUS_TITLE_4);
-            $form->addElement($status, true);
+            $form->addElement($status, false);
 
             // export
             $form->addElement(new XoopsFormButton('', 'submit', _SUBMIT, 'submit'));
@@ -1214,6 +1190,109 @@ switch ($op) {
             $xoopsTpl->assign('form', $form->render());
         }
         break;
+
+        case 'export_order':
+            if ($perm_order == false){
+                redirect_header('export.php', 5, _NOPERM);
+            }
+            if (xoops_isActiveModule('xmarticle') && xoops_isActiveModule('xmstock')){
+                $helper_xmarticle = Helper::getHelper('xmarticle');
+                $helper_xmarticle->loadLanguage('main');
+                $categorieHandler  = $helper_xmarticle->getHandler('xmarticle_category');
+
+                $helper_xmstock = Helper::getHelper('xmstock');
+                $helper_xmstock->loadLanguage('main');
+                $areaHandler  = $helper_xmstock->getHandler('xmstock_area');
+
+                // récupération des valeurs du formulaire
+                $areas = Request::getArray('filter_area', 0, 'POST');
+                $date_range = Request::getInt('filter_date_range', 0, 'POST');
+                $date_from = strtotime(Request::getString('filter_date_from', '', 'POST'));
+                $date_to = strtotime(Request::getString('filter_date_to', '', 'POST'));
+                $status = Request::getArray('filter_status', array(), 'POST');
+
+                // options d'export
+                $name_csv 	= 'Export_order_' . time() . '.csv';
+                $path_csv 	= XOOPS_UPLOAD_PATH . '/xmstats/exports/order/' . $name_csv;
+                $url_csv 	= XOOPS_UPLOAD_URL . '/xmstats/exports/order/' . $name_csv;
+                //supression des anciens fichiers
+                XmstatsUtility::delOldFiles(XOOPS_UPLOAD_PATH . '/xmstats/exports/order/', 'csv');
+                // En-tête fixe du CSV
+                $header = [_MA_XMSTATS_EXPORT_ORDER_N0, _MA_XMSTOCK_ORDER_DESCRIPTION, _MA_XMSTOCK_MANAGEMENT_CUSTOMER, _MA_XMSTOCK_MANAGEMENT_AREA, _MA_XMSTOCK_ORDER_DATEORDER,
+                           _MA_XMSTOCK_ORDER_DATEDESIRED, _MA_XMSTOCK_ORDER_DATEVALIDATION, _MA_XMSTOCK_ORDER_DATEDELIVERYWITHDRAWAL,_MA_XMSTOCK_ORDER_DATEREADY,
+                           _MA_XMSTOCK_ORDER_DATEDELIVERYWITHDRAWAL_R, _MA_XMSTOCK_ORDER_DATECANCELLATION, _MA_XMSTOCK_ORDER_DELIVERY, _MA_XMSTOCK_STATUS];
+                // Récupération des prêts avec les informations
+                $sql  = "SELECT o.*, u.uname AS user_name, s.area_name";
+                $sql .= " FROM " . $xoopsDB->prefix('xmstock_order') . " AS o";
+                $sql .= " LEFT JOIN " . $xoopsDB->prefix('users') . " AS u ON o.order_userid = u.uid";
+                $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmstock_area') . " AS s ON o.order_areaid = s.area_id";
+                if (!in_array(0, $areas)){
+                    $areas_ids = implode(',', $areas);
+                    $sql_where[] = "o.order_areaid IN (" . $areas_ids . ")";
+                } else {
+                    $sql_where[] = "o.order_areaid IN (" . implode(',', $managePermissionArea) . ")";
+                }
+                if ($date_range == 1){
+                    $sql_where[] = "(o.order_dorder >= " . $date_from . " AND o.order_dorder <= " . $date_to . ")";
+                }
+                if (!empty($status)) {
+                    $sql_where[] = "o.order_status IN (" . implode(',', $status) . ")";
+                }
+                if (!empty($sql_where)) {
+                    $sql .= " WHERE " . implode(' AND ', $sql_where);
+                }
+                $sql .= " ORDER BY o.order_dorder ASC";
+                $result = $xoopsDB->query($sql);
+                if ($xoopsDB->getRowsNum($result) > 0 && !empty($status)) {
+                    // Création du fichier d'export
+                    $csv = fopen($path_csv, 'w+');
+                    //add BOM to fix UTF-8 in Excel
+                    fputs($csv, $bom = ( chr(0xEF) . chr(0xBB) . chr(0xBF) ));
+                    // En-tête du CSV
+                    fputcsv($csv, $header, $separator);
+                    // Écriture des données dans le CSV
+                    while ($row = $xoopsDB->fetchArray($result)) {
+                        switch ($row['order_status']) {
+                            case 1:
+                                $order_status = _MA_XMSTOCK_ORDER_STATUS_1;
+                                break;
+                            case 2:
+                                $order_status = _MA_XMSTOCK_ORDER_STATUS_2;
+                                break;
+                            case 3:
+                                $order_status = _MA_XMSTOCK_ORDER_STATUS_3;
+                                break;
+                            case 4:
+                                $order_status = _MA_XMSTOCK_ORDER_STATUS_4;
+                                break;
+                            case 0:
+                                $order_status = _MA_XMSTOCK_ORDER_STATUS_0;
+                                break;
+                        }
+                        $line = [
+                            $row['order_id'],
+                            $row['order_description'],
+                            $row['user_name'],
+                            $row['area_name'],
+                            formatTimestamp($row['order_dorder'], 'm'),
+                            formatTimestamp($row['order_ddesired'], 's'),
+                            $row['order_dvalidation'] == 0 ? '' : formatTimestamp($row['order_dvalidation'], 'm'),
+                            $row['order_ddelivery'] == 0 ? '' : formatTimestamp($row['order_ddelivery'], 's'),
+                            $row['order_dready'] == 0 ? '' : formatTimestamp($row['order_dready'], 'm'),
+                            $row['order_ddelivery_r'] == 0 ? '' : formatTimestamp($row['order_ddelivery_r'], 'm'),
+                            $row['order_dcancellation'] == 0 ? '' : formatTimestamp($row['order_dcancellation'], 'm'),
+                            $row['order_delivery'] == 0 ? _MA_XMSTOCK_ORDER_DELIVERY_WITHDRAWAL : _MA_XMSTOCK_ORDER_DELIVERY_DELIVERY,
+                            $order_status
+                        ];
+                        fputcsv($csv, $line, $separator);
+                    }
+                    fclose($csv);
+                    header("Location: $url_csv");
+                } else {
+                    $xoopsTpl->assign('error', _MA_XMSTATS_EXPORT_NO_DATA);
+                }
+            }
+            break;
 }
 
 $keywords = '';
