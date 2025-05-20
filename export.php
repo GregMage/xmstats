@@ -48,7 +48,7 @@ $xoopsTpl->assign('perm_transfer', $perm_transfer);
 $xoopsTpl->assign('perm_loan', $perm_loan);
 $xoopsTpl->assign('perm_overdraft', $perm_overdraft);
 $xoopsTpl->assign('perm_order', $perm_order);
-if ($perm_kardex == false && $perm_article == false && $perm_stock == false && $perm_transfer == false){
+if ($perm_kardex == false && $perm_article == false && $perm_stock == false && $perm_transfer == false && $perm_loan == false && $perm_order == false && $perm_overdraft == false){
     redirect_header('index.php', 5, _NOPERM);
 }
 if (xoops_isActiveModule('xmarticle')){
