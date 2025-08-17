@@ -28,6 +28,9 @@ $xoTheme->addStylesheet(XOOPS_URL . '/modules/' . $xoopsModule->getVar('dirname'
 
 $xoopsTpl->assign('index_module', $helper->getModule()->getVar('name'));
 
+//temporaire
+redirect_header(XOOPS_URL, 5, _NOPERM);
+
 $curent_years = date('Y');
 $month = date('m');
 
