@@ -21,4 +21,4 @@ use Xmf\Module\Helper;
 $helper = Helper::getHelper(basename(dirname(__DIR__)));
 
 // Get handler
-//xHandler = $helper->getHandler('xx');
+$exportHandler  = $helper->getHandler('xmstats_export');

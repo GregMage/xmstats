@@ -32,6 +32,12 @@ $adminmenu[] = [
     'link'  => 'admin/index.php',
     'icon'  => $pathIcon32 . 'home.png'
 ];
+// Index
+$adminmenu[] = [
+    'title' => _MI_XMSTATS_MENU_EXPORT,
+    'link'  => 'admin/export.php',
+    'icon'  => $pathIcon32 . 'export.png'
+];
 // Permission
 $adminmenu[] = array(
     'title' => _MI_XMSTATS_MENU_PERMISSION ,

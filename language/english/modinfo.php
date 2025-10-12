@@ -21,6 +21,7 @@ define('_MI_XMSTATS_DESC', 'Module de statistiques pour les modules de la famill
 
 // Menu
 define('_MI_XMSTATS_MENU_HOME', 'Index');
+define('_MI_XMSTATS_MENU_EXPORT', 'Exportation');
 define('_MI_XMSTATS_MENU_PERMISSION', 'Permission');
 define('_MI_XMSTATS_MENU_ABOUT', 'About');
 
@@ -29,5 +30,5 @@ define('_MI_XMSTATS_SUB_EXPORT', 'Exportation');
 
 
 // Pref
-define('_MI_XMSTATS_PREF_HEAD_GENERAL', '<span style="font-size: large;  font-weight: bold;">--- General ---</span>');
-define('_MI_XMSTATS_PREF_GENERALITEMPERPAGE', 'Number of items per page in the general view');
+define('_MI_XMSTATS_PREF_HEAD_GENERAL', '<span style="font-size: large;  font-weight: bold;">Général</span>');
+define('_MI_XMSTATS_PREF_GENERALITEMPERPAGE', 'Nombre d\'éléments par page');

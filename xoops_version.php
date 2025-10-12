@@ -18,7 +18,7 @@
  */
 $modversion['dirname']     = basename(__DIR__);
 $modversion['name']        = ucfirst(basename(__DIR__));
-$modversion['version']     = '0.0.1-Alpha';
+$modversion['version']     = '0.1.0-Alpha';
 $modversion['description'] = _MI_XMSTATS_DESC;
 $modversion['author']      = 'Grégory Mage (Mage)';
 $modversion['url']         = 'https://github.com/GregMage';
@@ -47,10 +47,14 @@ $modversion['adminmenu']   = 'admin/menu.php';
 $modversion['onInstall'] = 'include/install.php';
 
 // Tables
+$modversion['sqlfile']['mysql'] = 'sql/mysql.sql';
+
+$modversion['tables'][1] = 'xmstats_export';
 
 
 // Admin Templates
 $modversion['templates'][] = ['file' => 'xmstats_admin_permission.tpl', 'description' => '', 'type' => 'admin'];
+$modversion['templates'][] = ['file' => 'xmstats_admin_export.tpl', 'description' => '', 'type' => 'admin'];
 
 // User Templates
 $modversion['templates'][] = ['file' => 'xmstats_index.tpl', 'description' => ''];
@@ -82,7 +86,7 @@ $modversion['config'][] = [
 
 
 // About stuff
-$modversion['release_date']  = '2024/10/30';
+$modversion['release_date']  = '2025/10/11';
 
 $modversion['developer_lead']      = 'Mage';
 $modversion['module_website_url']  = 'github.com/GregMage';

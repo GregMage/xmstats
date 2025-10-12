@@ -21,6 +21,7 @@ require_once $path . '/mainfile.php';
 require_once $path . '/include/cp_functions.php';
 require_once $path . '/include/cp_header.php';
 include_once XOOPS_ROOT_PATH . '/class/pagenav.php';
+include_once __DIR__ . '/../include/common.php';
 
 xoops_load('utility', basename(dirname(__DIR__)));
 
@@ -32,5 +33,8 @@ $helper = Helper::getHelper(basename(dirname(__DIR__)));
 
 // Load language files
 $helper->loadLanguage('main');
+
+// Config
+$nb_limit = $helper->getConfig('general_perpage', 15);
 
 xoops_cp_header();

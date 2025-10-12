@@ -31,6 +31,13 @@ define('_MA_XMSTATS_', '');
 
 
 // Shared
+define('_MA_XMSTATS_ADD', 'Ajouter');
+define('_MA_XMSTATS_EDIT', 'Editer');
+define('_MA_XMSTATS_DEL', 'Supprimer');
+define('_MA_XMSTATS_STATUS', 'Statut');
+define('_MA_XMSTATS_STATUS_A', 'Actif');
+define('_MA_XMSTATS_STATUS_NA', 'Désactivé');
+define('_MA_XMSTATS_REDIRECT_SAVE', 'Enregistrement effectué avec succès');
 
 // index.php
 define('_MA_XMSTATS_INDEX_ALL', 'Sur toute la période');
@@ -85,6 +92,25 @@ define('_MA_XMSTATS_EXPORT_TRANSFER_CAT', 'Catégorie du composant à transfére
 define('_MA_XMSTATS_EXPORT_TRANSFER_N0', 'N° de transfert');
 define('_MA_XMSTATS_EXPORT_TRANSFER_REFARTICLE', 'Référence du composant à transférer');
 define('_MA_XMSTATS_EXPORT_FILTER_TRANSFER_STATUS', 'Statut du transfert');
+
+// Export admin
+define('_MA_XMSTATS_EXPORT_FID_ADD', 'Ajouter un champ à exporter');
+define('_MA_XMSTATS_EXPORT_FID_LIST', 'Liste des champs à exporter');
+define('_MA_XMSTATS_EXPORT_TYPE', 'Type d\'export');
+define('_MA_XMSTATS_EXPORT_TYPE_0', 'Composants');
+define('_MA_XMSTATS_EXPORT_TYPE_1', 'Stocks');
+define('_MA_XMSTATS_EXPORT_TYPE_2', 'Transferts');
+define('_MA_XMSTATS_EXPORT_TYPE_3', 'Prêts');
+define('_MA_XMSTATS_EXPORT_TYPE_4', 'Découverts');
+define('_MA_XMSTATS_EXPORT_TYPE_5', 'Commandes');
+define('_MA_XMSTATS_EXPORT_ID', 'ID');
+define('_MA_XMSTATS_EXPORT_FIELD', 'Champs à ajouter à l\'export');
+define('_MA_XMSTATS_EXPORT_FIELD_DSC', 'Choisissez le champ à ajouter à l\'export. Seuls les champs du module xmarticle sont disponibles.');
+define('_MA_XMSTATS_EXPORT_SUREDEL', 'Voulez-vous vraiment supprimer ce champs? %s');
+
+
+define('_MA_XMSTATS_ERROR_NOFIELDEXPORT', 'Aucun champ à exporter n\'a été créé.');
+define('_MA_XMSTATS_ERROR_XMARTICLE_NOTACTIVE', 'Le module xmarticle doit être activé pour utiliser ce module.');
 
 // Permission
 define('_MA_XMSTATS_PERMISSION', 'Autorisations');

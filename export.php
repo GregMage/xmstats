@@ -20,6 +20,67 @@
 use \Xmf\Request;
 use Xmf\Module\Helper;
 
+function xmstats_apply_fielddata(array &$articles, $articleId, array $row, array &$fields, array $fields_label = [], $helper_xmarticle = null)
+{
+    if (!empty($row['fielddata_fid']) && isset($fields[$row['fielddata_fid']])) {
+        $fid = $row['fielddata_fid'];
+        switch ($row['field_type'] ?? '') {
+            case 'vs_text':
+            case 's_text':
+            case 'm_text':
+            case 'l_text':
+                $articles[$articleId]['fields'][$fid] = $row['fielddata_value1'];
+                break;
+
+            case 'radio_yn':
+                $articles[$articleId]['fields'][$fid] = ($row['fielddata_value1'] == 0) ? _NO : _YES;
+                break;
+
+            case 'select':
+            case 'radio':
+                $field_options = @unserialize($row['field_options']);
+                $articles[$articleId]['fields'][$fid] = $field_options[$row['fielddata_value1']] ?? '';
+                break;
+
+            case 'text':
+                $articles[$articleId]['fields'][$fid] = $row['fielddata_value2'];
+                break;
+
+            case 'select_multi':
+            case 'checkbox':
+                $field_options = @unserialize($row['field_options']);
+                $opt = $field_options[$row['fielddata_value3']] ?? '';
+                if (empty($articles[$articleId]['fields'][$fid])) {
+                    $articles[$articleId]['fields'][$fid] = $opt;
+                } else {
+                    $sep = ($helper_xmarticle && method_exists($helper_xmarticle, 'getConfig')) ? $helper_xmarticle->getConfig('general_separator', '-') : '-';
+                    $articles[$articleId]['fields'][$fid] .= $sep . $opt;
+                }
+                break;
+
+            case 'number':
+                $articles[$articleId]['fields'][$fid] = $row['fielddata_value4'];
+                break;
+
+            default:
+                $articles[$articleId]['fields'][$fid] = $row['fielddata_value1'];
+                break;
+        }
+    }
+
+    // labels (cat fields)
+    if (!empty($fields_label) && !empty($row['category_fields'])) {
+        $category_fields = @unserialize($row['category_fields']);
+        if (is_array($category_fields)) {
+            foreach (array_keys($fields_label) as $i) {
+                if (in_array($i, $category_fields)) {
+                    $articles[$articleId]['fields'][$i] = $fields_label[$i];
+                }
+            }
+        }
+    }
+}
+
 include_once __DIR__ . '/header.php';
 $GLOBALS['xoopsOption']['template_main'] = 'xmstats_export.tpl';
 include_once XOOPS_ROOT_PATH . '/header.php';
@@ -289,63 +350,7 @@ switch ($op) {
                         ];
                     }
                     // Remplissage des champs si une valeur existe
-                    if (!empty($row['fielddata_fid']) && isset($fields[$row['fielddata_fid']])) {
-                        switch ($row['field_type']) {
-                            case 'vs_text':
-                            case 's_text':
-                            case 'm_text':
-                            case 'l_text':
-                                $articles[$articleId]['fields'][$row['fielddata_fid']] = $row['fielddata_value1'];
-                                break;
-
-                            case 'radio_yn':
-                                if ($row['fielddata_value1'] == 0) {
-                                    $articles[$articleId]['fields'][$row['fielddata_fid']] = _NO;
-                                } else {
-                                    $articles[$articleId]['fields'][$row['fielddata_fid']] = _YES;
-                                }
-                                break;
-
-                            case 'select':
-                            case 'radio':
-                                $field_options = unserialize($row['field_options']);
-                                $articles[$articleId]['fields'][$row['fielddata_fid']] = $field_options[$row['fielddata_value1']];
-                                break;
-
-                            case 'text':
-                                $articles[$articleId]['fields'][$row['fielddata_fid']] = $row['fielddata_value2'];
-                                break;
-
-                            case 'select_multi':
-                            case 'checkbox':
-                                $field_options = unserialize($row['field_options']);
-                                if (empty($articles[$articleId]['fields'][$row['fielddata_fid']])){
-                                    $articles[$articleId]['fields'][$row['fielddata_fid']] = $field_options[$row['fielddata_value3']];
-                                } else {
-                                    $articles[$articleId]['fields'][$row['fielddata_fid']] = $articles[$articleId]['fields'][$row['fielddata_fid']] .
-                                    $helper_xmarticle->getConfig('general_separator', '-') . $field_options[$row['fielddata_value3']];
-                                }
-                                break;
-
-                            case 'number':
-                                $articles[$articleId]['fields'][$row['fielddata_fid']] = $row['fielddata_value4'];
-                                break;
-                            // provisoir
-                            default:
-                                echo 'default<br>';
-                                $articles[$articleId]['fields'][$row['fielddata_fid']] = $row['fielddata_value1'];
-                                break;
-                        }
-                    }
-                    // remplissage des champs label
-                    if (!empty($fields_label)) {
-                        $category_fields = unserialize($row['category_fields']);
-                        foreach (array_keys($fields_label) as $i) {
-                            if (in_array($i, $category_fields)) {
-                                $articles[$articleId]['fields'][$i] = $fields_label[$i];
-                            }
-                        }
-                    }
+                    xmstats_apply_fielddata($articles, $articleId, $row, $fields, $fields_label ?? [], $helper_xmarticle ?? null);
                 }
                 // Création du fichier d'export
                 $csv = fopen($path_csv, 'w+');
@@ -445,11 +450,13 @@ switch ($op) {
         break;
 
     case 'export_stock':
+        $type = 'STO';
         if ($perm_stock == false){
             redirect_header('export.php', 5, _NOPERM);
         }
         if (xoops_isActiveModule('xmarticle') && xoops_isActiveModule('xmstock')){
             $helper_xmarticle = Helper::getHelper('xmarticle');
+            $fieldHandler  = $helper_xmarticle->getHandler('xmarticle_field');
             $helper_xmarticle->loadLanguage('main');
             $categorieHandler  = $helper_xmarticle->getHandler('xmarticle_category');
 
@@ -471,13 +478,43 @@ switch ($op) {
             // En-tête fixe du CSV
             $header = [_MA_XMSTOCK_STOCK_AREA, _MA_XMARTICLE_ARTICLE_REFERENCE, _MA_XMARTICLE_INDEX_ARTICLE, _MA_XMARTICLE_ARTICLE_DESC, _MA_XMARTICLE_ARTICLE_CATEGORY
                        , _MA_XMSTOCK_TRANSFER_PRICE, _MA_XMSTOCK_STOCK_LOCATION, _MA_XMSTOCK_STOCK_MINI, _MA_XMSTOCK_STOCK_AMOUNT, _MA_XMSTOCK_STOCK_TYPE, _MA_XMSTATS_EXPORT_STOCK_CANORDER];
-
+            // En-tête champs personalisés du CSV
+            $criteria = new CriteriaCompo();
+            $criteria->add(new Criteria('export_type', $type));
+            $criteria->add(new Criteria('export_status', 1));
+            $export_arr = $exportHandler->getall($criteria);
+            $fields_ids = [];
+            foreach (array_keys($export_arr) as $i) {
+                $fields_ids[] = $export_arr[$i]->getVar('export_fid');
+            }
+            $fields_ids = array_values(array_unique($fields_ids));
+            if (!empty($fields_ids)) {
+                $criteria = new CriteriaCompo();
+                $criteria->add(new Criteria('field_status', 1));
+                $criteria->setSort('field_weight ASC, field_name');
+                $criteria->add(new Criteria('field_id', '(' . implode(',', $fields_ids) . ')', 'IN'));
+                $criteria->setOrder('ASC');
+                $field_arr = $fieldHandler->getall($criteria);
+                $fields_label = [];
+                foreach (array_keys($field_arr) as $i) {
+                    $header[] = htmlspecialchars_decode($field_arr[$i]->getVar('field_name'));
+                    $fields[$i] = $field_arr[$i]->getVar('field_name');
+                    if ($field_arr[$i]->getVar('field_type') == 'label'){
+                        $fields_label[$i] = $field_arr[$i]->getVar('field_default');
+                    }
+                }
+            } else {
+                $fields = [];
+            }
+            var_dump($fields);
             // Récupération des stock avec leurs articles
-            $sql  = "SELECT a.article_name, a.article_description, a.article_reference, c.category_name, t.area_name, s.*";
+            $sql  = "SELECT a.article_name, a.article_description, a.article_reference, c.category_name, t.area_name, s.*, f.*, fd.*";
             $sql .= " FROM " . $xoopsDB->prefix('xmarticle_article') . " AS a";
             $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmarticle_category') . " AS c ON a.article_cid = c.category_id";
             $sql .= " INNER JOIN " . $xoopsDB->prefix('xmstock_stock') . " AS s ON a.article_id = s.stock_articleid";
             $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmstock_area') . " AS t ON s.stock_areaid = t.area_id";
+            $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmarticle_fielddata') . " AS fd ON a.article_id = fd.fielddata_aid";
+            $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmarticle_field') . " AS f ON fd.fielddata_fid = f.field_id";
             $sql_where[] = "a.article_status = 1";
             $sql_where[] = "t.area_status = 1";
             if (!in_array(0, $areas)){
@@ -497,6 +534,47 @@ switch ($op) {
             $sql .= " ORDER BY t.area_name ASC, a.article_name ASC";
             $result = $xoopsDB->query($sql);
             if ($xoopsDB->getRowsNum($result) > 0) {
+                // Préparation des données
+                $articles = [];
+                while ($row = $xoopsDB->fetchArray($result)) {
+                    $articleId = $row['stock_id'];
+                    if (!isset($articles[$articleId])) {
+                        switch ($row['stock_type']) {
+                            case 1:
+                                $stockTypeText = _MA_XMSTOCK_STOCK_STANDARD;
+                                break;
+                            case 2:
+                                $stockTypeText = _MA_XMSTOCK_STOCK_ML;
+                                break;
+                            case 3:
+                                $stockTypeText = _MA_XMSTATS_EXPORT_STOCK_LOAN;
+                                break;
+                            case 4:
+                                $stockTypeText = _MA_XMSTOCK_STOCK_FREE;
+                                break;
+                            case 5:
+                                $stockTypeText = _MA_XMSTOCK_STOCK_SURFACE;
+                                break;
+                        }
+                        // Initialisation de l'article
+                        $articles[$articleId] = [
+                            'area_name' => $row['area_name'],
+                            'article_reference' => $row['article_reference'],
+                            'article_name' => $row['article_name'],
+                            'article_description' => $row['article_description'],
+                            'category_name' => $row['category_name'],
+                            'stock_price' => $row['stock_price'],
+                            'stock_location' => $row['stock_location'],
+                            'stock_mini' => $row['stock_mini'],
+                            'stock_amount' => $row['stock_amount'],
+                            'stock_type' => $stockTypeText,
+                            'stock_order' => $row['stock_order'] == 0 ? _YES : _NO,
+                            'fields' => array_fill_keys(array_keys($fields), '') // Champs initialisés à vide
+                        ];
+                    }
+                    // Remplissage des champs si une valeur existe
+                    xmstats_apply_fielddata($articles, $articleId, $row, $fields, $fields_label ?? [], $helper_xmarticle ?? null);
+                }
                 // Création du fichier d'export
                 $csv = fopen($path_csv, 'w+');
                 //add BOM to fix UTF-8 in Excel
@@ -504,37 +582,24 @@ switch ($op) {
                 // En-tête du CSV
                 fputcsv($csv, $header, $separator);
                 // Écriture des données dans le CSV
-                while ($row = $xoopsDB->fetchArray($result)) {
-                    switch ($row['stock_type']) {
-                        case 1:
-                            $stockTypeText = _MA_XMSTOCK_STOCK_STANDARD;
-                            break;
-                        case 2:
-                            $stockTypeText = _MA_XMSTOCK_STOCK_ML;
-                            break;
-                        case 3:
-                            $stockTypeText = _MA_XMSTATS_EXPORT_STOCK_LOAN;
-                            break;
-                        case 4:
-                            $stockTypeText = _MA_XMSTOCK_STOCK_FREE;
-                            break;
-                        case 5:
-                            $stockTypeText = _MA_XMSTOCK_STOCK_SURFACE;
-                            break;
-                    }
+                foreach ($articles as $article) {
                     $line = [
-                        $row['area_name'],
-                        $row['article_reference'],
-                        $row['article_name'],
-                        $row['article_description'],
-                        $row['category_name'],
-                        $row['stock_price'],
-                        $row['stock_location'],
-                        $row['stock_mini'],
-                        $row['stock_amount'],
-                        $stockTypeText,
-                        $row['stock_order'] == 0 ? _YES : _NO
+                        $article['area_name'],
+                        $article['article_reference'],
+                        $article['article_name'],
+                        $article['article_description'],
+                        $article['category_name'],
+                        $article['stock_price'],
+                        $article['stock_location'],
+                        $article['stock_mini'],
+                        $article['stock_amount'],
+                        $article['stock_type'],
+                        $article['stock_order']
                     ];
+                    // Ajout des valeurs des champs
+                    foreach ($fields as $fieldId => $fieldName) {
+                        $line[] = $article['fields'][$fieldId];
+                    }
                     fputcsv($csv, $line, $separator);
                 }
                 fclose($csv);
