@@ -20,6 +20,16 @@
 use \Xmf\Request;
 use Xmf\Module\Helper;
 
+/**
+ * Applique les données de fielddata et labels à la structure $articles
+ *
+ * @param array  $articles        Référence vers le tableau d'articles
+ * @param mixed  $articleId       Identifiant article (clé)
+ * @param array  $row             Ligne SQL courante
+ * @param array  $fields          Tableau des champs (id => nom)
+ * @param array  $fields_label    Tableau des labels (id => valeur) ou []
+ * @param object $helper_xmarticle helper optionnel pour getConfig()
+ */
 function xmstats_apply_fielddata(array &$articles, $articleId, array $row, array &$fields, array $fields_label = [], $helper_xmarticle = null)
 {
     if (!empty($row['fielddata_fid']) && isset($fields[$row['fielddata_fid']])) {
@@ -80,6 +90,67 @@ function xmstats_apply_fielddata(array &$articles, $articleId, array $row, array
         }
     }
 }
+
+/**
+ * Prépare les en-têtes et les définitions des champs personnalisés pour l'export
+ *
+ * @param string $type
+ * @param array  $header        Référence vers l'entête CSV
+ * @param array  $fields        Référence vers le tableau id => nom des champs
+ * @param array  $fields_label  Référence vers les valeurs par défaut des champs 'label'
+ * @param object $exportHandler
+ * @param object $fieldHandler
+ */
+function xmstats_prepare_export_fields(string $type, array &$header, array &$fields, array &$fields_label, $exportHandler, $fieldHandler)
+{
+
+    $criteria = new CriteriaCompo();
+    $criteria->add(new Criteria('export_type', $type));
+    $criteria->add(new Criteria('export_status', 1));
+    $export_arr = $exportHandler->getall($criteria);
+
+    $fields_ids = [];
+    foreach ($export_arr as $exp) {
+        $fid = $exp->getVar('export_fid');
+        if ($fid === null || $fid === '') {
+            continue;
+        }
+        // normaliser en tableau (gère "1,2,3", int ou array)
+        if (is_string($fid) && strpos($fid, ',') !== false) {
+            $fid = array_map('intval', array_map('trim', explode(',', $fid)));
+        } elseif (!is_array($fid)) {
+            $fid = [$fid];
+        }
+        foreach ($fid as $f) {
+            $f = (int)$f;
+            if ($f > 0) {
+                $fields_ids[] = $f;
+            }
+        }
+    }
+    $fields_ids = array_values(array_unique($fields_ids));
+
+    if (!empty($fields_ids)) {
+        $criteria = new CriteriaCompo();
+        $criteria->add(new Criteria('field_status', 1));
+        $criteria->setSort('field_weight ASC, field_name');
+        $criteria->add(new Criteria('field_id', '(' . implode(',', $fields_ids) . ')', 'IN'));
+        $criteria->setOrder('ASC');
+        $field_arr = $fieldHandler->getall($criteria);
+
+        foreach ($field_arr as $fid => $fieldObj) {
+            $header[] = htmlspecialchars_decode($fieldObj->getVar('field_name'));
+            $fields[$fid] = $fieldObj->getVar('field_name');
+            if ($fieldObj->getVar('field_type') == 'label') {
+                $fields_label[$fid] = $fieldObj->getVar('field_default');
+            }
+        }
+    } else {
+        $fields = [];
+    }
+}
+
+
 
 include_once __DIR__ . '/header.php';
 $GLOBALS['xoopsOption']['template_main'] = 'xmstats_export.tpl';
@@ -479,34 +550,9 @@ switch ($op) {
             $header = [_MA_XMSTOCK_STOCK_AREA, _MA_XMARTICLE_ARTICLE_REFERENCE, _MA_XMARTICLE_INDEX_ARTICLE, _MA_XMARTICLE_ARTICLE_DESC, _MA_XMARTICLE_ARTICLE_CATEGORY
                        , _MA_XMSTOCK_TRANSFER_PRICE, _MA_XMSTOCK_STOCK_LOCATION, _MA_XMSTOCK_STOCK_MINI, _MA_XMSTOCK_STOCK_AMOUNT, _MA_XMSTOCK_STOCK_TYPE, _MA_XMSTATS_EXPORT_STOCK_CANORDER];
             // En-tête champs personalisés du CSV
-            $criteria = new CriteriaCompo();
-            $criteria->add(new Criteria('export_type', $type));
-            $criteria->add(new Criteria('export_status', 1));
-            $export_arr = $exportHandler->getall($criteria);
-            $fields_ids = [];
-            foreach (array_keys($export_arr) as $i) {
-                $fields_ids[] = $export_arr[$i]->getVar('export_fid');
-            }
-            $fields_ids = array_values(array_unique($fields_ids));
-            if (!empty($fields_ids)) {
-                $criteria = new CriteriaCompo();
-                $criteria->add(new Criteria('field_status', 1));
-                $criteria->setSort('field_weight ASC, field_name');
-                $criteria->add(new Criteria('field_id', '(' . implode(',', $fields_ids) . ')', 'IN'));
-                $criteria->setOrder('ASC');
-                $field_arr = $fieldHandler->getall($criteria);
-                $fields_label = [];
-                foreach (array_keys($field_arr) as $i) {
-                    $header[] = htmlspecialchars_decode($field_arr[$i]->getVar('field_name'));
-                    $fields[$i] = $field_arr[$i]->getVar('field_name');
-                    if ($field_arr[$i]->getVar('field_type') == 'label'){
-                        $fields_label[$i] = $field_arr[$i]->getVar('field_default');
-                    }
-                }
-            } else {
-                $fields = [];
-            }
-            var_dump($fields);
+            $fields = [];
+            $fields_label = [];
+            xmstats_prepare_export_fields($type, $header, $fields, $fields_label, $exportHandler, $fieldHandler);
             // Récupération des stock avec leurs articles
             $sql  = "SELECT a.article_name, a.article_description, a.article_reference, c.category_name, t.area_name, s.*, f.*, fd.*";
             $sql .= " FROM " . $xoopsDB->prefix('xmarticle_article') . " AS a";
@@ -710,12 +756,14 @@ switch ($op) {
         break;
 
         case 'export_transfer':
+            $type = 'TRA';
             if ($perm_transfer == false){
                 redirect_header('export.php', 5, _NOPERM);
             }
             if (xoops_isActiveModule('xmarticle') && xoops_isActiveModule('xmstock')){
                 $helper_xmarticle = Helper::getHelper('xmarticle');
                 $helper_xmarticle->loadLanguage('main');
+                $fieldHandler  = $helper_xmarticle->getHandler('xmarticle_field');
                 $categorieHandler  = $helper_xmarticle->getHandler('xmarticle_category');
 
                 $helper_xmstock = Helper::getHelper('xmstock');
@@ -741,8 +789,12 @@ switch ($op) {
                 $header = [_MA_XMSTATS_EXPORT_TRANSFER_N0, _MA_XMSTOCK_TRANSFER_REF, _MA_XMSTOCK_TRANSFER_DESC, _MA_XMSTATS_EXPORT_TRANSFER_REFARTICLE, _MA_XMSTOCK_TRANSFER_ARTICLE,
                            _MA_XMSTATS_EXPORT_TRANSFER_CAT, _MA_XMSTOCK_TRANSFER_TYPE, _MA_XMSTOCK_TRANSFER_STAREA, _MA_XMSTOCK_TRANSFER_DESTINATION, _MA_XMSTOCK_AREA_AMOUNT,
                            _MA_XMSTOCK_TRANSFER_DATE, _MA_XMSTOCK_TRANSFER_TIME, _MA_XMSTOCK_TRANSFER_USER, _MA_XMSTOCK_TRANSFER_NEEDSYEAR, _MA_XMSTOCK_STATUS];
+                            // En-tête champs personalisés du CSV
+                $fields = [];
+                $fields_label = [];
+                xmstats_prepare_export_fields($type, $header, $fields, $fields_label, $exportHandler, $fieldHandler);
                 // Récupération des transferts avec les informations
-                $sql  = "SELECT t.*, u.uname AS user_name, aru.uname AS ar_user_name, a.article_name, a.article_reference, c.category_name, st.area_name AS st_area_name, ar.area_name AS ar_area_name, o.output_name";
+                $sql  = "SELECT t.*, u.uname AS user_name, aru.uname AS ar_user_name, a.article_name, a.article_reference, c.category_name, st.area_name AS st_area_name, ar.area_name AS ar_area_name, o.output_name, f.*, fd.*";
                 $sql .= " FROM " . $xoopsDB->prefix('xmstock_transfer') . " AS t";
                 $sql .= " LEFT JOIN " . $xoopsDB->prefix('users') . " AS u ON t.transfer_userid = u.uid";
                 $sql .= " LEFT JOIN " . $xoopsDB->prefix('users') . " AS aru ON t.transfer_outputuserid = aru.uid";
@@ -751,6 +803,8 @@ switch ($op) {
                 $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmstock_output') . " AS o ON t.transfer_outputid = o.output_id";
                 $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmarticle_article') . " AS a ON t.transfer_articleid = a.article_id";
                 $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmarticle_category') . " AS c ON a.article_cid = c.category_id";
+                $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmarticle_fielddata') . " AS fd ON a.article_id = fd.fielddata_aid";
+                $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmarticle_field') . " AS f ON fd.fielddata_fid = f.field_id";
                 if (!in_array(0, $areas)){
                     $areas_ids = implode(',', $areas);
                     $sql_where[] = "(t.transfer_st_areaid IN (" . $areas_ids . ") OR t.transfer_ar_areaid IN (" . $areas_ids . "))";
@@ -777,7 +831,93 @@ switch ($op) {
                 $sql .= " ORDER BY t.transfer_date DESC";
                 $result = $xoopsDB->query($sql);
                 if ($xoopsDB->getRowsNum($result) > 0) {
+                    $articles = [];
+                    while ($row = $xoopsDB->fetchArray($result)) {
+                        $articleId = $row['transfer_id'];
+                        if (!isset($articles[$articleId])) {
+                            switch ($row['transfer_type']) {
+                                case 'E':
+                                    $transferTypeText = _MA_XMSTOCK_TRANSFER_ENTRYINSTOCK;
+                                    $transferStAreaText = '';
+                                    $transferArAreaText = _MA_XMSTOCK_TRANSFER_STOCK . $row['ar_area_name'];
+                                    break;
+                                case 'O':
+                                    $transferTypeText = _MA_XMSTOCK_TRANSFER_OUTOFSTOCK;
+                                    $transferStAreaText =$row['st_area_name'];
+                                    if ($row['transfer_outputuserid'] == 0){
+                                        if ($row['transfer_outputid'] != 0){
+                                            $transferArAreaText = $row['output_name'];
+                                        } else {
+                                            $transferArAreaText = '';
+                                        }
+                                    } else {
+                                        $transferArAreaText = $row['ar_user_name'];
+                                    }
+                                    break;
+                                case 'T':
+                                    $transferTypeText = _MA_XMSTOCK_TRANSFER_TRANSFEROFSTOCK;
+                                    $transferStAreaText =$row['st_area_name'];
+                                    $transferArAreaText = _MA_XMSTOCK_TRANSFER_STOCK . $row['ar_area_name'];
+                                    break;
+                            }
+                            // Initialisation de l'article
+                            $articles[$articleId] = [
+                                'transfer_id' => $row['transfer_id'],
+                                'transfer_ref' => $row['transfer_ref'],
+                                'transfer_description' => $row['transfer_description'],
+                                'article_reference' => $row['article_reference'],
+                                'article_name' => $row['article_name'],
+                                'category_name' => $row['category_name'],
+                                'transferTypeText' => $transferTypeText,
+                                'transferStAreaText' => $transferStAreaText,
+                                'transferArAreaText' => $transferArAreaText,
+                                'transfer_amount' => $row['transfer_amount'],
+                                'transfer_date' => formatTimestamp($row['transfer_date'], 's'),
+                                'transfer_time' => substr(formatTimestamp($row['transfer_date'], 'm'), -5),
+                                'user_name' => $row['user_name'],
+                                'transfer_needsyear' => $row['transfer_needsyear'],
+                                'transfer_status' => $row['transfer_status'] == 1 ? _MA_XMSTOCK_STATUS_EXECUTED : _MA_XMSTOCK_STATUS_WAITING,
+                                'fields' => array_fill_keys(array_keys($fields), '') // Champs initialisés à vide
+                            ];
+                        }
+                        // Remplissage des champs si une valeur existe
+                        xmstats_apply_fielddata($articles, $articleId, $row, $fields, $fields_label ?? [], $helper_xmarticle ?? null);
+                    }
                     // Création du fichier d'export
+                    $csv = fopen($path_csv, 'w+');
+                    //add BOM to fix UTF-8 in Excel
+                    fputs($csv, $bom = ( chr(0xEF) . chr(0xBB) . chr(0xBF) ));
+                    // En-tête du CSV
+                    fputcsv($csv, $header, $separator);
+                    // Écriture des données dans le CSV
+                    foreach ($articles as $article) {
+                        $line = [
+                            $article['transfer_id'],
+                            $article['transfer_ref'],
+                            $article['transfer_description'],
+                            $article['article_reference'],
+                            $article['article_name'],
+                            $article['category_name'],
+                            $article['transferTypeText'],
+                            $article['transferStAreaText'],
+                            $article['transferArAreaText'],
+                            $article['transfer_amount'],
+                            $article['transfer_date'],
+                            $article['transfer_time'],
+                            $article['user_name'],
+                            $article['transfer_needsyear'],
+                            $article['transfer_status']
+                        ];
+                        // Ajout des valeurs des champs
+                        foreach ($fields as $fieldId => $fieldName) {
+                            $line[] = $article['fields'][$fieldId];
+                        }
+                        fputcsv($csv, $line, $separator);
+                    }
+                    fclose($csv);
+                    header("Location: $url_csv");
+
+                    /*// Création du fichier d'export
                     $csv = fopen($path_csv, 'w+');
                     //add BOM to fix UTF-8 in Excel
                     fputs($csv, $bom = ( chr(0xEF) . chr(0xBB) . chr(0xBF) ));
@@ -830,7 +970,7 @@ switch ($op) {
                         fputcsv($csv, $line, $separator);
                     }
                     fclose($csv);
-                    header("Location: $url_csv");
+                    header("Location: $url_csv");*/
                 } else {
                     $xoopsTpl->assign('error', _MA_XMSTATS_EXPORT_NO_DATA);
                 }
