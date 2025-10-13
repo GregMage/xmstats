@@ -789,7 +789,7 @@ switch ($op) {
                 $header = [_MA_XMSTATS_EXPORT_TRANSFER_N0, _MA_XMSTOCK_TRANSFER_REF, _MA_XMSTOCK_TRANSFER_DESC, _MA_XMSTATS_EXPORT_TRANSFER_REFARTICLE, _MA_XMSTOCK_TRANSFER_ARTICLE,
                            _MA_XMSTATS_EXPORT_TRANSFER_CAT, _MA_XMSTOCK_TRANSFER_TYPE, _MA_XMSTOCK_TRANSFER_STAREA, _MA_XMSTOCK_TRANSFER_DESTINATION, _MA_XMSTOCK_AREA_AMOUNT,
                            _MA_XMSTOCK_TRANSFER_DATE, _MA_XMSTOCK_TRANSFER_TIME, _MA_XMSTOCK_TRANSFER_USER, _MA_XMSTOCK_TRANSFER_NEEDSYEAR, _MA_XMSTOCK_STATUS];
-                            // En-tête champs personalisés du CSV
+                // En-tête champs personalisés du CSV
                 $fields = [];
                 $fields_label = [];
                 xmstats_prepare_export_fields($type, $header, $fields, $fields_label, $exportHandler, $fieldHandler);
@@ -916,61 +916,6 @@ switch ($op) {
                     }
                     fclose($csv);
                     header("Location: $url_csv");
-
-                    /*// Création du fichier d'export
-                    $csv = fopen($path_csv, 'w+');
-                    //add BOM to fix UTF-8 in Excel
-                    fputs($csv, $bom = ( chr(0xEF) . chr(0xBB) . chr(0xBF) ));
-                    // En-tête du CSV
-                    fputcsv($csv, $header, $separator);
-                    // Écriture des données dans le CSV
-                    while ($row = $xoopsDB->fetchArray($result)) {
-                        switch ($row['transfer_type']) {
-                            case 'E':
-                                $transferTypeText = _MA_XMSTOCK_TRANSFER_ENTRYINSTOCK;
-                                $transferStAreaText = '';
-                                $transferArAreaText = _MA_XMSTOCK_TRANSFER_STOCK . $row['ar_area_name'];
-                                break;
-                            case 'O':
-                                $transferTypeText = _MA_XMSTOCK_TRANSFER_OUTOFSTOCK;
-                                $transferStAreaText =$row['st_area_name'];
-                                if ($row['transfer_outputuserid'] == 0){
-                                    if ($row['transfer_outputid'] != 0){
-                                        $transferArAreaText = $row['output_name'];
-                                    } else {
-                                        $transferArAreaText = '';
-                                    }
-                                } else {
-                                    $transferArAreaText = $row['ar_user_name'];
-                                }
-                                break;
-                            case 'T':
-                                $transferTypeText = _MA_XMSTOCK_TRANSFER_TRANSFEROFSTOCK;
-                                $transferStAreaText =$row['st_area_name'];
-                                $transferArAreaText = _MA_XMSTOCK_TRANSFER_STOCK . $row['ar_area_name'];
-                                break;
-                        }
-                        $line = [
-                            $row['transfer_id'],
-                            $row['transfer_ref'],
-                            $row['transfer_description'],
-                            $row['article_reference'],
-                            $row['article_name'],
-                            $row['category_name'],
-                            $transferTypeText,
-                            $transferStAreaText,
-                            $transferArAreaText,
-                            $row['transfer_amount'],
-                            formatTimestamp($row['transfer_date'], 's'),
-                            substr(formatTimestamp($row['transfer_date'], 'm'), -5),
-                            $row['user_name'],
-                            $row['transfer_needsyear'],
-                            $row['transfer_status'] == 1 ? _MA_XMSTOCK_STATUS_EXECUTED : _MA_XMSTOCK_STATUS_WAITING
-                        ];
-                        fputcsv($csv, $line, $separator);
-                    }
-                    fclose($csv);
-                    header("Location: $url_csv");*/
                 } else {
                     $xoopsTpl->assign('error', _MA_XMSTATS_EXPORT_NO_DATA);
                 }
@@ -1077,12 +1022,14 @@ switch ($op) {
         break;
 
         case 'export_loan':
+            $type = 'LOA';
             if ($perm_loan == false){
                 redirect_header('export.php', 5, _NOPERM);
             }
             if (xoops_isActiveModule('xmarticle') && xoops_isActiveModule('xmstock')){
                 $helper_xmarticle = Helper::getHelper('xmarticle');
                 $helper_xmarticle->loadLanguage('main');
+                $fieldHandler  = $helper_xmarticle->getHandler('xmarticle_field');
                 $categorieHandler  = $helper_xmarticle->getHandler('xmarticle_category');
 
                 $helper_xmstock = Helper::getHelper('xmstock');
@@ -1108,13 +1055,19 @@ switch ($op) {
                 $header = [_MA_XMSTATS_EXPORT_LOAN_N0, _MA_XMSTATS_EXPORT_LOAN_REFARTICLE, _MA_XMSTOCK_LOAN_ARTICLE, _MA_XMSTATS_EXPORT_LOAN_CAT,
                            _MA_XMSTOCK_LOAN_AREA, _MA_XMSTOCK_LOAN_AMOUNT, _MA_XMSTOCK_LOAN_DATE, _MA_XMSTOCK_LOAN_RDATE, _MA_XMSTOCK_LOAN_USERID,
                            _MA_XMSTOCK_LOAN_STATUS];
+                // En-tête champs personalisés du CSV
+                $fields = [];
+                $fields_label = [];
+                xmstats_prepare_export_fields($type, $header, $fields, $fields_label, $exportHandler, $fieldHandler);
                 // Récupération des prêts avec les informations
-                $sql  = "SELECT l.*, u.uname AS user_name, a.article_name, a.article_reference, c.category_name, s.area_name";
+                $sql  = "SELECT l.*, u.uname AS user_name, a.article_name, a.article_reference, c.category_name, s.area_name, f.*, fd.*";
                 $sql .= " FROM " . $xoopsDB->prefix('xmstock_loan') . " AS l";
                 $sql .= " LEFT JOIN " . $xoopsDB->prefix('users') . " AS u ON l.loan_userid = u.uid";
                 $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmstock_area') . " AS s ON l.loan_areaid = s.area_id";
                 $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmarticle_article') . " AS a ON l.loan_articleid = a.article_id";
                 $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmarticle_category') . " AS c ON a.article_cid = c.category_id";
+                $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmarticle_fielddata') . " AS fd ON a.article_id = fd.fielddata_aid";
+                $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmarticle_field') . " AS f ON fd.fielddata_fid = f.field_id";
                 if (!in_array(0, $areas)){
                     $areas_ids = implode(',', $areas);
                     $sql_where[] = "l.loan_areaid IN (" . $areas_ids . ")";
@@ -1141,6 +1094,28 @@ switch ($op) {
                 $sql .= " ORDER BY l.loan_date ASC";
                 $result = $xoopsDB->query($sql);
                 if ($xoopsDB->getRowsNum($result) > 0) {
+                    $articles = [];
+                    while ($row = $xoopsDB->fetchArray($result)) {
+                        $articleId = $row['loan_id'];
+                        if (!isset($articles[$articleId])) {
+                            // Initialisation de l'article
+                            $articles[$articleId] = [
+                                'loan_id' => $row['loan_id'],
+                                'article_reference' => $row['article_reference'],
+                                'article_name' => $row['article_name'],
+                                'category_name' => $row['category_name'],
+                                'area_name' => $row['area_name'],
+                                'loan_amount' => $row['loan_amount'],
+                                'loan_date' => formatTimestamp($row['loan_date'], 's'),
+                                'loan_rdate' =>  ($row['loan_status'] == 0) ? formatTimestamp($row['loan_rdate'], 's') : '',
+                                'user_name' => $row['user_name'],
+                                'loan_status' => $row['loan_status'] == 1 ? _MA_XMSTOCK_LOAN_STATUS_L : _MA_XMSTOCK_LOAN_STATUS_C,
+                                'fields' => array_fill_keys(array_keys($fields), '') // Champs initialisés à vide
+                            ];
+                        }
+                        // Remplissage des champs si une valeur existe
+                        xmstats_apply_fielddata($articles, $articleId, $row, $fields, $fields_label ?? [], $helper_xmarticle ?? null);
+                    }
                     // Création du fichier d'export
                     $csv = fopen($path_csv, 'w+');
                     //add BOM to fix UTF-8 in Excel
@@ -1148,19 +1123,23 @@ switch ($op) {
                     // En-tête du CSV
                     fputcsv($csv, $header, $separator);
                     // Écriture des données dans le CSV
-                    while ($row = $xoopsDB->fetchArray($result)) {
+                    foreach ($articles as $article) {
                         $line = [
-                            $row['loan_id'],
-                            $row['article_reference'],
-                            $row['article_name'],
-                            $row['category_name'],
-                            $row['area_name'],
-                            $row['loan_amount'],
-                            formatTimestamp($row['loan_date'], 's'),
-                            ($row['loan_status'] == 0) ? formatTimestamp($row['loan_rdate'], 's') : '',
-                            $row['user_name'],
-                            $row['loan_status'] == 1 ? _MA_XMSTOCK_LOAN_STATUS_L : _MA_XMSTOCK_LOAN_STATUS_C
+                            $article['loan_id'],
+                            $article['article_reference'],
+                            $article['article_name'],
+                            $article['category_name'],
+                            $article['area_name'],
+                            $article['loan_amount'],
+                            $article['loan_date'],
+                            $article['loan_rdate'],
+                            $article['user_name'],
+                            $article['loan_status']
                         ];
+                        // Ajout des valeurs des champs
+                        foreach ($fields as $fieldId => $fieldName) {
+                            $line[] = $article['fields'][$fieldId];
+                        }
                         fputcsv($csv, $line, $separator);
                     }
                     fclose($csv);

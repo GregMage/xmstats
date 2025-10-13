@@ -52,7 +52,7 @@ switch ($op) {
             'CPS' => _MA_XMSTATS_EXPORT_TYPE_0,
             'STO' => _MA_XMSTATS_EXPORT_TYPE_1,
             'TRA' => _MA_XMSTATS_EXPORT_TYPE_2,
-            'PRE' => _MA_XMSTATS_EXPORT_TYPE_3,
+            'LOA' => _MA_XMSTATS_EXPORT_TYPE_3,
             'DEC' => _MA_XMSTATS_EXPORT_TYPE_4,
             'CMD' => _MA_XMSTATS_EXPORT_TYPE_5
         );
