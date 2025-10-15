@@ -1218,12 +1218,14 @@ switch ($op) {
         break;
 
         case 'export_overdraft':
+            $type = 'OVE';
             if ($perm_overdraft == false){
                 redirect_header('export.php', 5, _NOPERM);
             }
             if (xoops_isActiveModule('xmarticle') && xoops_isActiveModule('xmstock')){
                 $helper_xmarticle = Helper::getHelper('xmarticle');
                 $helper_xmarticle->loadLanguage('main');
+                $fieldHandler  = $helper_xmarticle->getHandler('xmarticle_field');
                 $categorieHandler  = $helper_xmarticle->getHandler('xmarticle_category');
 
                 $helper_xmstock = Helper::getHelper('xmstock');
@@ -1244,12 +1246,18 @@ switch ($op) {
                 // En-tête fixe du CSV
                 $header = [_MA_XMSTATS_EXPORT_REFARTICLE, _MA_XMSTATS_EXPORT_ARTICLE, _MA_XMSTATS_EXPORT_CATARTICLE,
                            _MA_XMSTATS_EXPORT_FILTER_AREA, _MA_XMSTATS_EXPORT_OVERDRAFT_STOCKMINI, _MA_XMSTOCK_LOAN_AMOUNT];
+                // En-tête champs personalisés du CSV
+                $fields = [];
+                $fields_label = [];
+                xmstats_prepare_export_fields($type, $header, $fields, $fields_label, $exportHandler, $fieldHandler);
                 // Récupération des informations
-                $sql  = "SELECT s.*, a.article_name, a.article_reference, c.category_name,  ar.area_name";
+                $sql  = "SELECT s.*, a.article_name, a.article_reference, c.category_name,  ar.area_name, f.*, fd.*";
                 $sql .= " FROM " . $xoopsDB->prefix('xmstock_stock') . " AS s";
                 $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmstock_area') . " AS ar ON s.stock_areaid = ar.area_id";
                 $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmarticle_article') . " AS a ON s.stock_articleid = a.article_id";
                 $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmarticle_category') . " AS c ON a.article_cid = c.category_id";
+                $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmarticle_fielddata') . " AS fd ON a.article_id = fd.fielddata_aid";
+                $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmarticle_field') . " AS f ON fd.fielddata_fid = f.field_id";
                 $sql_where[] = "s.stock_amount <= s.stock_mini";
                 $sql_where[] = "s.stock_mini != 0";
                 if (!in_array(0, $areas)){
@@ -1272,6 +1280,24 @@ switch ($op) {
                 $sql .= " ORDER BY s.stock_amount ASC";
                 $result = $xoopsDB->query($sql);
                 if ($xoopsDB->getRowsNum($result) > 0) {
+                    $articles = [];
+                    while ($row = $xoopsDB->fetchArray($result)) {
+                        $articleId = $row['stock_id'];
+                        if (!isset($articles[$articleId])) {
+                            // Initialisation de l'article
+                            $articles[$articleId] = [
+                                'article_reference' => $row['article_reference'],
+                                'article_name' => $row['article_name'],
+                                'category_name' => $row['category_name'],
+                                'area_name' => $row['area_name'],
+                                'stock_mini' => $row['stock_mini'],
+                                'stock_amount' => $row['stock_amount'],
+                                'fields' => array_fill_keys(array_keys($fields), '') // Champs initialisés à vide
+                            ];
+                        }
+                        // Remplissage des champs si une valeur existe
+                        xmstats_apply_fielddata($articles, $articleId, $row, $fields, $fields_label ?? [], $helper_xmarticle ?? null);
+                    }
                     // Création du fichier d'export
                     $csv = fopen($path_csv, 'w+');
                     //add BOM to fix UTF-8 in Excel
@@ -1279,15 +1305,19 @@ switch ($op) {
                     // En-tête du CSV
                     fputcsv($csv, $header, $separator);
                     // Écriture des données dans le CSV
-                    while ($row = $xoopsDB->fetchArray($result)) {
+                    foreach ($articles as $article) {
                         $line = [
-                            $row['article_reference'],
-                            $row['article_name'],
-                            $row['category_name'],
-                            $row['area_name'],
-                            $row['stock_mini'],
-                            $row['stock_amount']
+                            $article['article_reference'],
+                            $article['article_name'],
+                            $article['category_name'],
+                            $article['area_name'],
+                            $article['stock_mini'],
+                            $article['stock_amount']
                         ];
+                        // Ajout des valeurs des champs
+                        foreach ($fields as $fieldId => $fieldName) {
+                            $line[] = $article['fields'][$fieldId];
+                        }
                         fputcsv($csv, $line, $separator);
                     }
                     fclose($csv);
