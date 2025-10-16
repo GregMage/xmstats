@@ -18,6 +18,7 @@
  */
 use Xmf\Module\Admin;
 use Xmf\Request;
+use Xmf\Module\Helper;
 
 require __DIR__ . '/admin_header.php';
 
@@ -53,15 +54,39 @@ switch ($op) {
             'STO' => _MA_XMSTATS_EXPORT_TYPE_1,
             'TRA' => _MA_XMSTATS_EXPORT_TYPE_2,
             'LOA' => _MA_XMSTATS_EXPORT_TYPE_3,
-            'OVE' => _MA_XMSTATS_EXPORT_TYPE_4,
-            'CMD' => _MA_XMSTATS_EXPORT_TYPE_5
+            'OVE' => _MA_XMSTATS_EXPORT_TYPE_4
         );
         if ($export_count > 0) {
+            $helper_stock = Helper::getHelper('xmstock');
+            $areadHandler  = $helper_stock->getHandler('xmstock_area');
+            $criteria = new CriteriaCompo();
+            $criteria->add(new Criteria('area_status', 1));
+            $area_arr = $areadHandler->getall($criteria);
+            $area = [];
+            foreach (array_keys($area_arr) as $i) {
+                $area[$i] = $area_arr[$i]->getVar('area_name');
+            }
             foreach (array_keys($export_arr) as $i) {
+                $export_sid              = $export_arr[$i]->getVar('export_sid');
                 $export_id               = $export_arr[$i]->getVar('export_id');
                 $export['id']            = $export_id;
                 $export['type']          = $type[$export_arr[$i]->getVar('export_type')];
-                $export['name']          = $export_arr[$i]->getVar('field_name');
+                $export['fname']         = $export_arr[$i]->getVar('field_name');
+                if (is_array($export_sid)) {
+                    $sname_arr = [];
+                    foreach ($export_sid as $sid) {
+                        if (isset($area[$sid])) {
+                            $sname_arr[] = $area[$sid];
+                        }
+                    }
+                    $export['sname'] = implode(', ', $sname_arr);
+                } else {
+                    if (isset($area[$export_sid])) {
+                        $export['sname'] = $area[$export_sid];
+                    } else {
+                        $export['sname'] = '';
+                    }
+                }
                 $export['status']        = $export_arr[$i]->getVar('export_status');
                 $xoopsTpl->appendByRef('exports', $export);
                 unset($export);

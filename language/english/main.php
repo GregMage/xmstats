@@ -102,11 +102,12 @@ define('_MA_XMSTATS_EXPORT_TYPE_1', 'Stocks');
 define('_MA_XMSTATS_EXPORT_TYPE_2', 'Transferts');
 define('_MA_XMSTATS_EXPORT_TYPE_3', 'Prêts');
 define('_MA_XMSTATS_EXPORT_TYPE_4', 'Découverts');
-define('_MA_XMSTATS_EXPORT_TYPE_5', 'Commandes');
 define('_MA_XMSTATS_EXPORT_ID', 'ID');
 define('_MA_XMSTATS_EXPORT_FIELD', 'Champs à ajouter à l\'export');
 define('_MA_XMSTATS_EXPORT_FIELD_DSC', 'Choisissez le champ à ajouter à l\'export. Seuls les champs du module xmarticle sont disponibles.');
 define('_MA_XMSTATS_EXPORT_SUREDEL', 'Voulez-vous vraiment supprimer ce champs? %s');
+define('_MA_XMSTATS_EXPORT_STOCK_AREA', 'Lieu de stockage à ajouter à l\'export');
+define('_MA_XMSTATS_EXPORT_STOCK_AREA_DSC', 'Choisissez le ou les lieux de stockage à exporter pour ajouter les informations de stock');
 
 
 define('_MA_XMSTATS_ERROR_NOFIELDEXPORT', 'Aucun champ à exporter n\'a été créé.');

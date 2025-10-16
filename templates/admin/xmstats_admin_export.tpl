@@ -10,9 +10,52 @@
         <{$error_message}>
     </div>
 <{/if}>
-<div>
-    <{$form|default:''}>
-</div>
+<{if $form|default:'' != ''}>
+    <div>
+        <{$form}>
+        <script type="text/javascript">
+        (function () {
+            var form = document.forms['form'];
+            if (!form) return;
+            var typeEl = form.querySelector('[name="export_type"]');
+            var fieldEl = form.querySelector('[name="export_fid"]');
+            var sidEl   = form.querySelector('[name="export_sid[]"]');
+            if (!typeEl) return;
+
+            // trouve la ligne contenant le champ (prend tr si présent, sinon parent direct)
+            function findRow(el) {
+                if (!el) return null;
+                var row = el.closest ? el.closest('tr') : null;
+                if (!row) {
+                    var p = el.parentNode;
+                    while (p && p !== form && p.nodeName.toLowerCase() !== 'tr') {
+                        p = p.parentNode;
+                    }
+                    row = (p && p.nodeName && p.nodeName.toLowerCase() === 'tr') ? p : el.parentNode;
+                }
+                return row;
+            }
+
+            var fidRow = findRow(fieldEl);
+            var sidRow = findRow(sidEl);
+
+            if (fidRow) fidRow.id = fidRow.id || 'xmstats_export_fid_row';
+            if (sidRow) sidRow.id = sidRow.id || 'xmstats_export_sid_row';
+
+            function update() {
+                var val = typeEl.value || (typeEl.options && typeEl.options[typeEl.selectedIndex] && typeEl.options[typeEl.selectedIndex].value) || '';
+                // cacher le champ "field" quand type === 'CPS'
+                if (fidRow) fidRow.style.display = (val === 'CPS') ? 'none' : '';
+                // afficher le champ "export_sid" uniquement quand type === 'CPS'
+                if (sidRow) sidRow.style.display = (val === 'CPS') ? '' : 'none';
+            }
+
+            typeEl.addEventListener('change', update, false);
+            update();
+        })();
+        </script>
+    </div>
+<{/if}>
 <{if $export_count|default:0 != 0}>
     <table id="xo-xmcontact-sorter" cellspacing="1" class="outer tablesorter">
         <thead>
@@ -20,6 +63,7 @@
             <th class="txtcenter width5"><{$smarty.const._MA_XMSTATS_EXPORT_ID}></th>
             <th class="txtleft width10"><{$smarty.const._MA_XMSTATS_EXPORT_TYPE}></th>
             <th class="txtleft"><{$smarty.const._MA_XMSTATS_EXPORT_FIELD}></th>
+            <th class="txtleft"><{$smarty.const._MA_XMSTATS_EXPORT_STOCK_AREA}></th>
             <th class="txtcenter width5"><{$smarty.const._MA_XMSTATS_STATUS}></th>
             <th class="txtcenter width10"><{$smarty.const._MA_XMSTATS_ACTION}></th>
         </tr>
@@ -29,7 +73,8 @@
             <tr class="<{cycle values='even,odd'}> alignmiddle">
                 <td class="txtcenter">#<{$export.id}></td>
                 <td class="txtleft"><{$export.type}></td>
-                <td class="txtleft"><{$export.name}></td>
+                <td class="txtleft"><{if $export.fname != ''}><{$export.fname}><{else}>/<{/if}></td>
+                <td class="txtleft"><{if $export.sname != ''}><{$export.sname}><{else}>/<{/if}></td>
                 <td class="xo-actions txtcenter">
                     <img id="loading_sml<{$export.id}>" src="../assets/images/spinner.gif" style="display:none;" title="<{$smarty.const._AM_SYSTEM_LOADING}>"
                     alt="<{$smarty.const._AM_SYSTEM_LOADING}>"><img class="cursorpointer tooltip" id="sml<{$export.id}>"

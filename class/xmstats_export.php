@@ -35,6 +35,7 @@ class xmstats_export extends XoopsObject
         $this->initVar('export_id', XOBJ_DTYPE_INT, null, false, 11);
         $this->initVar('export_type', XOBJ_DTYPE_TXTBOX, null, false);
         $this->initVar('export_fid', XOBJ_DTYPE_INT, null);
+        $this->initVar('export_sid', XOBJ_DTYPE_ARRAY);
         $this->initVar('export_status', XOBJ_DTYPE_INT, 0);
         $this->initVar('field_name', XOBJ_DTYPE_TXTBOX, null);
     }
@@ -60,8 +61,15 @@ class xmstats_export extends XoopsObject
         include __DIR__ . '/../include/common.php';
 
         $error_message = '';
-        $this->setVar('export_type', Request::getString('export_type', ''));
-        $this->setVar('export_fid', Request::getInt('export_fid', 1));
+        $type = Request::getString('export_type', '');
+        $this->setVar('export_type', $type);
+        if ($type == 'CPS') {
+            $this->setVar('export_fid', 0);
+            $this->setVar('export_sid', Request::getArray('export_sid', 1));
+        } else {
+            $this->setVar('export_sid', '');
+            $this->setVar('export_fid', Request::getInt('export_fid', 0));
+        }
         $this->setVar('export_status', Request::getInt('export_status', 1));
         if ($error_message == '') {
             if ($exportHandler->insert($this)) {
@@ -108,9 +116,7 @@ class xmstats_export extends XoopsObject
             'STO'  => _MA_XMSTATS_EXPORT_TYPE_1,
             'TRA'  => _MA_XMSTATS_EXPORT_TYPE_2,
             'LOA'  => _MA_XMSTATS_EXPORT_TYPE_3,
-            'OVE'  => _MA_XMSTATS_EXPORT_TYPE_4,
-            'CMD'  => _MA_XMSTATS_EXPORT_TYPE_5,
-
+            'OVE'  => _MA_XMSTATS_EXPORT_TYPE_4
         );
         $type->addOptionArray($options);
         $form->addElement($type, true);
@@ -130,6 +136,20 @@ class xmstats_export extends XoopsObject
         $field->setDescription(_MA_XMSTATS_EXPORT_FIELD_DSC);
         $form->addElement($field, true);
 
+        // stock
+        $stock = new XoopsFormSelect(_MA_XMSTATS_EXPORT_STOCK_AREA, 'export_sid', $this->getVar('export_sid'), 5, true);
+        $helper_stock = Helper::getHelper('xmstock');
+        $areadHandler  = $helper_stock->getHandler('xmstock_area');
+        $criteria = new CriteriaCompo();
+        $criteria->add(new Criteria('area_status', 1));
+        $criteria->setSort('area_weight ASC, area_name');
+        $criteria->setOrder('ASC');
+        $area_arr = $areadHandler->getall($criteria);
+        foreach (array_keys($area_arr) as $i) {
+            $stock->addOption($area_arr[$i]->getVar('area_id'), $area_arr[$i]->getVar('area_name'));
+        }
+        $stock->setDescription(_MA_XMSTATS_EXPORT_STOCK_AREA_DSC);
+        $form->addElement($stock);
 
 		// status
         $form_status = new XoopsFormRadio(_MA_XMSTATS_STATUS, 'export_status', $status);
