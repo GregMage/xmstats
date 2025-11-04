@@ -35,7 +35,7 @@ class xmstats_export extends XoopsObject
         $this->initVar('export_id', XOBJ_DTYPE_INT, null, false, 11);
         $this->initVar('export_type', XOBJ_DTYPE_TXTBOX, null, false);
         $this->initVar('export_fid', XOBJ_DTYPE_INT, null);
-        $this->initVar('export_sid', XOBJ_DTYPE_ARRAY);
+        $this->initVar('export_sid', XOBJ_DTYPE_INT, null);
         $this->initVar('export_status', XOBJ_DTYPE_INT, 0);
         $this->initVar('field_name', XOBJ_DTYPE_TXTBOX, null);
     }
@@ -65,9 +65,9 @@ class xmstats_export extends XoopsObject
         $this->setVar('export_type', $type);
         if ($type == 'CPS') {
             $this->setVar('export_fid', 0);
-            $this->setVar('export_sid', Request::getArray('export_sid', 1));
+            $this->setVar('export_sid', Request::getInt('export_sid', 0));
         } else {
-            $this->setVar('export_sid', '');
+            $this->setVar('export_sid', 0);
             $this->setVar('export_fid', Request::getInt('export_fid', 0));
         }
         $this->setVar('export_status', Request::getInt('export_status', 1));
@@ -137,7 +137,7 @@ class xmstats_export extends XoopsObject
         $form->addElement($field, true);
 
         // stock
-        $stock = new XoopsFormSelect(_MA_XMSTATS_EXPORT_STOCK_AREA, 'export_sid', $this->getVar('export_sid'), 5, true);
+        $stock = new XoopsFormSelect(_MA_XMSTATS_EXPORT_STOCK_AREA, 'export_sid', $this->getVar('export_sid'));
         $helper_stock = Helper::getHelper('xmstock');
         $areadHandler  = $helper_stock->getHandler('xmstock_area');
         $criteria = new CriteriaCompo();

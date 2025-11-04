@@ -72,20 +72,10 @@ switch ($op) {
                 $export['id']            = $export_id;
                 $export['type']          = $type[$export_arr[$i]->getVar('export_type')];
                 $export['fname']         = $export_arr[$i]->getVar('field_name');
-                if (is_array($export_sid)) {
-                    $sname_arr = [];
-                    foreach ($export_sid as $sid) {
-                        if (isset($area[$sid])) {
-                            $sname_arr[] = $area[$sid];
-                        }
-                    }
-                    $export['sname'] = implode(', ', $sname_arr);
+                  if (isset($area[$export_sid])) {
+                    $export['sname'] = $area[$export_sid];
                 } else {
-                    if (isset($area[$export_sid])) {
-                        $export['sname'] = $area[$export_sid];
-                    } else {
-                        $export['sname'] = '';
-                    }
+                    $export['sname'] = '';
                 }
                 $export['status']        = $export_arr[$i]->getVar('export_status');
                 $xoopsTpl->appendByRef('exports', $export);
