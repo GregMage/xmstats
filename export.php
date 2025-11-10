@@ -324,10 +324,38 @@ switch ($op) {
             redirect_header('export.php', 5, _NOPERM);
         }
         if (xoops_isActiveModule('xmarticle')){
+            $type = 'CPS';
+            $criteria = new CriteriaCompo();
+            $criteria->add(new Criteria('export_type', $type));
+            $criteria->add(new Criteria('export_status', 1));
+            $export_arr = $exportHandler->getall($criteria);
+            $stock_ids = [];
+            foreach ($export_arr as $exp) {
+                $sid = $exp->getVar('export_sid');
+                if ($sid === null || $sid === '') {
+                    continue;
+                }
+                // normaliser en tableau (gère "1,2,3", int ou array)
+                if (is_string($sid) && strpos($sid, ',') !== false) {
+                    $sid = array_map('intval', array_map('trim', explode(',', $sid)));
+                } elseif (!is_array($sid)) {
+                    $sid = [$sid];
+                }
+                foreach ($sid as $f) {
+                    $f = (int)$f;
+                    if ($f > 0) {
+                        $stock_ids[] = $f;
+                    }
+                }
+            }
+            $stock_ids = array_values(array_unique($stock_ids));
+
             $helper_xmarticle = Helper::getHelper('xmarticle');
             $helper_xmarticle->loadLanguage('main');
             $fieldHandler  = $helper_xmarticle->getHandler('xmarticle_field');
             $categoryHandler  = $helper_xmarticle->getHandler('xmarticle_category');
+            $helper_xmstock = Helper::getHelper('xmstock');
+            $areaHandler  = $helper_xmstock->getHandler('xmstock_area');
 
             // récupération des valeurs du formulaire
             $categories = Request::getArray('filter_categorie', 0, 'POST');
@@ -375,10 +403,27 @@ switch ($op) {
             } else {
                 $fields = [];
             }
+            // En-tête champs stock du CSV
+            if (!empty($stock_ids)) {
+                $criteria = new CriteriaCompo();
+                $criteria->add(new Criteria('area_status', 1));
+                $criteria->add(new Criteria('area_id', '(' . implode(',', $stock_ids) . ')', 'IN'));
+                $criteria->setSort('area_weight ASC, area_name');
+                $criteria->setOrder('ASC');
+                $area_arr = $areaHandler->getall($criteria);
+                foreach (array_keys($area_arr) as $i) {
+                    $header[] = htmlspecialchars_decode($area_arr[$i]->getVar('area_name'));
+                    $area[$i] = $area_arr[$i]->getVar('area_name');
+                }
+            } else {
+                $area = [];
+            }
+
             // Récupération des articles avec leurs catégories et champs
-            $sql  = "SELECT a.*, c.category_name, c.category_fields, u.uname, f.*, fd.*";
+            $sql  = "SELECT a.*, c.category_name, c.category_fields, u.uname, s.*, f.*, fd.*";
             $sql .= " FROM " . $xoopsDB->prefix('xmarticle_article') . " AS a";
             $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmarticle_category') . " AS c ON a.article_cid = c.category_id";
+            $sql .= " INNER JOIN " . $xoopsDB->prefix('xmstock_stock') . " AS s ON a.article_id = s.stock_articleid";
             $sql .= " LEFT JOIN " . $xoopsDB->prefix('users') . " AS u ON a.article_userid = u.uid";
             $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmarticle_fielddata') . " AS fd ON a.article_id = fd.fielddata_aid";
             $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmarticle_field') . " AS f ON fd.fielddata_fid = f.field_id";
@@ -417,11 +462,13 @@ switch ($op) {
                             'article_date' => date('d-m-Y', $row['article_date']),
                             'article_counter' => $row['article_counter'],
                             'article_status' => $row['article_status'],
-                            'fields' => array_fill_keys(array_keys($fields), '') // Champs initialisés à vide
+                            'fields' => array_fill_keys(array_keys($fields), ''), // Champs initialisés à vide
+                            'area' => array_fill_keys(array_keys($area), '') // Champs initialisés à vide
                         ];
                     }
                     // Remplissage des champs si une valeur existe
                     xmstats_apply_fielddata($articles, $articleId, $row, $fields, $fields_label ?? [], $helper_xmarticle ?? null);
+                    $articles[$articleId]['area'][$row['stock_areaid']] = $row['stock_amount'];
                 }
                 // Création du fichier d'export
                 $csv = fopen($path_csv, 'w+');
@@ -444,6 +491,9 @@ switch ($op) {
                     // Ajout des valeurs des champs
                     foreach ($fields as $fieldId => $fieldName) {
                         $line[] = $article['fields'][$fieldId];
+                    }
+                    foreach ($area as $areaId => $areaName) {
+                        $line[] = $article['area'][$areaId];
                     }
                     fputcsv($csv, $line, $separator);
                 }
