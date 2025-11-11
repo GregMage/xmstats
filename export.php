@@ -39,7 +39,7 @@ function xmstats_apply_fielddata(array &$articles, $articleId, array $row, array
             case 's_text':
             case 'm_text':
             case 'l_text':
-                $articles[$articleId]['fields'][$fid] = $row['fielddata_value1'];
+                $articles[$articleId]['fields'][$fid] = html_entity_decode($row['fielddata_value1'] ?? '', ENT_QUOTES, 'UTF-8');
                 break;
 
             case 'radio_yn':
@@ -49,7 +49,8 @@ function xmstats_apply_fielddata(array &$articles, $articleId, array $row, array
             case 'select':
             case 'radio':
                 $field_options = @unserialize($row['field_options']);
-                $articles[$articleId]['fields'][$fid] = $field_options[$row['fielddata_value1']] ?? '';
+                $val = $field_options[$row['fielddata_value1']] ?? '';
+                $articles[$articleId]['fields'][$fid] = html_entity_decode($val, ENT_QUOTES, 'UTF-8');
                 break;
 
             case 'text':
@@ -60,6 +61,7 @@ function xmstats_apply_fielddata(array &$articles, $articleId, array $row, array
             case 'checkbox':
                 $field_options = @unserialize($row['field_options']);
                 $opt = $field_options[$row['fielddata_value3']] ?? '';
+                $opt = html_entity_decode($opt, ENT_QUOTES, 'UTF-8');
                 if (empty($articles[$articleId]['fields'][$fid])) {
                     $articles[$articleId]['fields'][$fid] = $opt;
                 } else {
@@ -73,7 +75,7 @@ function xmstats_apply_fielddata(array &$articles, $articleId, array $row, array
                 break;
 
             default:
-                $articles[$articleId]['fields'][$fid] = $row['fielddata_value1'];
+                $articles[$articleId]['fields'][$fid] = html_entity_decode($row['fielddata_value1'] ?? '', ENT_QUOTES, 'UTF-8');
                 break;
         }
     }
