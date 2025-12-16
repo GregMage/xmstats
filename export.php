@@ -425,7 +425,7 @@ switch ($op) {
             $sql  = "SELECT a.*, c.category_name, c.category_fields, u.uname, s.*, f.*, fd.*";
             $sql .= " FROM " . $xoopsDB->prefix('xmarticle_article') . " AS a";
             $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmarticle_category') . " AS c ON a.article_cid = c.category_id";
-            $sql .= " INNER JOIN " . $xoopsDB->prefix('xmstock_stock') . " AS s ON a.article_id = s.stock_articleid";
+            $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmstock_stock') . " AS s ON a.article_id = s.stock_articleid";
             $sql .= " LEFT JOIN " . $xoopsDB->prefix('users') . " AS u ON a.article_userid = u.uid";
             $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmarticle_fielddata') . " AS fd ON a.article_id = fd.fielddata_aid";
             $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmarticle_field') . " AS f ON fd.fielddata_fid = f.field_id";
@@ -609,7 +609,7 @@ switch ($op) {
             $sql  = "SELECT a.article_name, a.article_description, a.article_reference, c.category_name, t.area_name, s.*, f.*, fd.*";
             $sql .= " FROM " . $xoopsDB->prefix('xmarticle_article') . " AS a";
             $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmarticle_category') . " AS c ON a.article_cid = c.category_id";
-            $sql .= " INNER JOIN " . $xoopsDB->prefix('xmstock_stock') . " AS s ON a.article_id = s.stock_articleid";
+            $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmstock_stock') . " AS s ON a.article_id = s.stock_articleid";
             $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmstock_area') . " AS t ON s.stock_areaid = t.area_id";
             $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmarticle_fielddata') . " AS fd ON a.article_id = fd.fielddata_aid";
             $sql .= " LEFT JOIN " . $xoopsDB->prefix('xmarticle_field') . " AS f ON fd.fielddata_fid = f.field_id";
