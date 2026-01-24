@@ -531,11 +531,6 @@ switch ($op) {
             $area = new XoopsFormSelect(_MA_XMSTATS_EXPORT_FILTER_AREA, 'filter_area', 0, 4, true);
             $criteria = new CriteriaCompo();
             $criteria->add(new Criteria('area_status', 1));
-            /*if (!empty($managePermissionArea)) {
-                $criteria->add(new Criteria('area_id', '(' . implode(',', $managePermissionArea) . ')', 'IN'));
-            } else {
-                redirect_header('index.php', 3, _NOPERM);
-            }*/
             $criteria->setSort('area_weight ASC, area_name');
             $criteria->setOrder('ASC');
             $area_arr = $areaHandler->getall($criteria);
@@ -736,11 +731,6 @@ switch ($op) {
             $area = new XoopsFormSelect(_MA_XMSTATS_EXPORT_FILTER_AREA, 'filter_area', 0, 4, true);
             $criteria = new CriteriaCompo();
             $criteria->add(new Criteria('area_status', 1));
-            /*if (!empty($managePermissionArea)) {
-                $criteria->add(new Criteria('area_id', '(' . implode(',', $managePermissionArea) . ')', 'IN'));
-            } else {
-                redirect_header('index.php', 3, _NOPERM);
-            }*/
             $criteria->setSort('area_weight ASC, area_name');
             $criteria->setOrder('ASC');
             $area_arr = $areaHandler->getall($criteria);
@@ -867,9 +857,7 @@ switch ($op) {
                 if (!in_array(0, $areas)){
                     $areas_ids = implode(',', $areas);
                     $sql_where[] = "(t.transfer_st_areaid IN (" . $areas_ids . ") OR t.transfer_ar_areaid IN (" . $areas_ids . "))";
-                } /*else {
-                    $sql_where[] = "(t.transfer_st_areaid IN (" . implode(',', $managePermissionArea) . ") OR t.transfer_ar_areaid IN (" . implode(',', $managePermissionArea) . "))";
-                }*/
+                }
                 if (!in_array(0, $categories)){
                     $sql_where[] = "a.article_cid IN (" . implode(',', $categories) . ")";
                 } else {
@@ -1002,11 +990,6 @@ switch ($op) {
             $area = new XoopsFormSelect(_MA_XMSTATS_EXPORT_FILTER_AREA, 'filter_area', 0, 4, true);
             $criteria = new CriteriaCompo();
             $criteria->add(new Criteria('area_status', 1));
-            /*if (!empty($managePermissionArea)) {
-                $criteria->add(new Criteria('area_id', '(' . implode(',', $managePermissionArea) . ')', 'IN'));
-            } else {
-                redirect_header('index.php', 3, _NOPERM);
-            }*/
             $criteria->setSort('area_weight ASC, area_name');
             $criteria->setOrder('ASC');
             $area_arr = $areaHandler->getall($criteria);
@@ -1130,9 +1113,7 @@ switch ($op) {
                 if (!in_array(0, $areas)){
                     $areas_ids = implode(',', $areas);
                     $sql_where[] = "l.loan_areaid IN (" . $areas_ids . ")";
-                } /*else {
-                    $sql_where[] = "l.loan_areaid IN (" . implode(',', $managePermissionArea) . ")";
-                }*/
+                }
                 if (!in_array(0, $categories)){
                     $sql_where[] = "a.article_cid IN (" . implode(',', $categories) . ")";
                 } else {
@@ -1228,11 +1209,6 @@ switch ($op) {
             $area = new XoopsFormSelect(_MA_XMSTATS_EXPORT_FILTER_AREA, 'filter_area', 0, 4, true);
             $criteria = new CriteriaCompo();
             $criteria->add(new Criteria('area_status', 1));
-            /*if (!empty($managePermissionArea)) {
-                $criteria->add(new Criteria('area_id', '(' . implode(',', $managePermissionArea) . ')', 'IN'));
-            } else {
-                redirect_header('index.php', 3, _NOPERM);
-            }*/
             $criteria->setSort('area_weight ASC, area_name');
             $criteria->setOrder('ASC');
             $area_arr = $areaHandler->getall($criteria);
@@ -1322,9 +1298,7 @@ switch ($op) {
                 if (!in_array(0, $areas)){
                     $areas_ids = implode(',', $areas);
                     $sql_where[] = "s.stock_areaid IN (" . $areas_ids . ")";
-                } /*else {
-                    $sql_where[] = "s.stock_areaid IN (" . implode(',', $managePermissionArea) . ")";
-                }*/
+                }
                 if (!in_array(0, $categories)){
                     $sql_where[] = "a.article_cid IN (" . implode(',', $categories) . ")";
                 } else {
@@ -1408,11 +1382,6 @@ switch ($op) {
             $area = new XoopsFormSelect(_MA_XMSTATS_EXPORT_FILTER_AREA, 'filter_area', 0, 4, true);
             $criteria = new CriteriaCompo();
             $criteria->add(new Criteria('area_status', 1));
-            /*if (!empty($managePermissionArea)) {
-                $criteria->add(new Criteria('area_id', '(' . implode(',', $managePermissionArea) . ')', 'IN'));
-            } else {
-                redirect_header('index.php', 3, _NOPERM);
-            }*/
             $criteria->setSort('area_weight ASC, area_name');
             $criteria->setOrder('ASC');
             $area_arr = $areaHandler->getall($criteria);
@@ -1502,9 +1471,7 @@ switch ($op) {
                 if (!in_array(0, $areas)){
                     $areas_ids = implode(',', $areas);
                     $sql_where[] = "o.order_areaid IN (" . $areas_ids . ")";
-                } /*else {
-                    $sql_where[] = "o.order_areaid IN (" . implode(',', $managePermissionArea) . ")";
-                }*/
+                }
                 if ($date_range == 1){
                     $sql_where[] = "(o.order_dorder >= " . $date_from . " AND o.order_dorder <= " . $date_to . ")";
                 }
